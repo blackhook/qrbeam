@@ -244,7 +244,7 @@ git commit -m "feat: 定义 QRBeam 帧线格式"
 - 创建：`crates/qrbeam-core/tests/manifest_wire.rs`
 - 修改：`crates/qrbeam-core/src/lib.rs`
 
-- [ ] **步骤 1：编写失败的清单测试**
+- [x] **步骤 1：编写失败的清单测试**
 
 测试覆盖：普通清单 encode/decode 完全相等；191 个区块 CRC 可以拆成多个 256 字节分片并乱序重组；文件大小 `100_000_001` 被拒绝；重复分片不增加完成度；缺一片时不能返回清单；翻转清单内容后完整 BLAKE3 不匹配。
 
@@ -269,7 +269,7 @@ let manifest = Manifest {
 };
 ```
 
-- [ ] **步骤 2：运行测试验证红灯**
+- [x] **步骤 2：运行测试验证红灯**
 
 运行：
 
@@ -279,7 +279,7 @@ let manifest = Manifest {
 
 预期：FAIL，原因是 `manifest` 模块不存在。
 
-- [ ] **步骤 3：实现清单线格式和分片重组器**
+- [x] **步骤 3：实现清单线格式和分片重组器**
 
 公开 API 固定为：
 
@@ -349,7 +349,7 @@ impl ManifestAssembler {
 
 每个清单帧 payload 前 32 字节保存完整清单 BLAKE3，后面最多保存 224 字节分片数据，使整个 payload 不超过一个 256 字节稳定档符号。字符串使用 UTF-8 和 `u16` 长度，profile 固定 8 字节，区块 CRC 使用 `u32` 小端，清单末尾保存 CRC32C。解析时验证区块数量等于 `ceil(container_length / segment_size)`，最后区块长度正确，默认分段和符号大小符合协议，所有计数在分配内存前通过上限检查。
 
-- [ ] **步骤 4：运行清单测试和全量检查验证绿灯**
+- [x] **步骤 4：运行清单测试和全量检查验证绿灯**
 
 运行：
 
@@ -361,7 +361,7 @@ impl ManifestAssembler {
 
 预期：全部测试通过，Clippy 0 error。
 
-- [ ] **步骤 5：Commit**
+- [x] **步骤 5：Commit**
 
 ```bash
 git add crates/qrbeam-core/src crates/qrbeam-core/tests/manifest_wire.rs

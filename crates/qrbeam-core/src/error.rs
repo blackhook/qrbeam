@@ -24,4 +24,24 @@ pub enum ProtocolError {
     InvalidSymbolRange,
     #[error("frame CRC32C mismatch: expected {expected:#010x}, calculated {actual:#010x}")]
     CrcMismatch { expected: u32, actual: u32 },
+    #[error("file is too large: got {actual} bytes, maximum is {maximum}")]
+    FileTooLarge { actual: u64, maximum: u64 },
+    #[error("manifest is too short: got {actual} bytes, need at least {minimum}")]
+    ManifestTooShort { actual: usize, minimum: usize },
+    #[error("manifest CRC32C mismatch: expected {expected:#010x}, calculated {actual:#010x}")]
+    ManifestCrcMismatch { expected: u32, actual: u32 },
+    #[error("manifest BLAKE3 does not match its fragments")]
+    ManifestHashMismatch,
+    #[error("invalid manifest: {0}")]
+    InvalidManifest(&'static str),
+    #[error("unknown compression mode {0}")]
+    UnknownCompression(u8),
+    #[error("unknown QR error correction level {0}")]
+    UnknownEccLevel(u8),
+    #[error("manifest text field is not valid UTF-8")]
+    InvalidManifestUtf8,
+    #[error("invalid manifest fragment: {0}")]
+    InvalidManifestFragment(&'static str),
+    #[error("manifest fragment conflicts with an already received fragment")]
+    ManifestFragmentConflict,
 }
