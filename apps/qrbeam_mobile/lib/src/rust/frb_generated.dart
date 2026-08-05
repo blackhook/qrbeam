@@ -68,7 +68,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
-        stem: 'qrbeam_bridge',
+        stem: 'rust_lib_qrbeam_mobile',
         ioDirectory: '../../crates/qrbeam-bridge/target/release/',
         webPrefix: 'pkg/',
       );

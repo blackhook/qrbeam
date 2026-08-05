@@ -1,6 +1,6 @@
-use qrbeam_bridge::api::receiver::{MobileBlockKind, MobilePhase, MobileReceiver};
 use qrbeam_core::session::SendSession;
 use qrbeam_core::timeline::ChannelRequest;
+use rust_lib_qrbeam_mobile::api::receiver::{MobileBlockKind, MobilePhase, MobileReceiver};
 
 const CHANNEL: ChannelRequest = ChannelRequest {
     channel_id: 0,
@@ -58,6 +58,9 @@ fn bridge_reports_manifest_blocks_and_completed_bytes() {
     }
 
     assert_eq!(receiver.snapshot().phase, MobilePhase::Complete);
-    assert_eq!(receiver.snapshot().blocks[0].kind, MobileBlockKind::Complete);
+    assert_eq!(
+        receiver.snapshot().blocks[0].kind,
+        MobileBlockKind::Complete
+    );
     assert_eq!(receiver.completed_file(), Some(data));
 }

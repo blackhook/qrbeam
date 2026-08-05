@@ -29,7 +29,7 @@ abstract class MobileReceiver implements RustOpaqueInterface {
   Future<MobileSnapshot> snapshot();
 }
 
-enum MobileBlockKind { missing, partial, complete }
+enum MobileBlockKind { missing, partial, complete, failed }
 
 class MobileBlockState {
   final MobileBlockKind kind;

@@ -109,7 +109,14 @@ impl ReceiverController {
             .session
             .as_mut()
             .ok_or(ProtocolError::ManifestRequired)?;
-        let update = session.ingest(bytes)?;
+        let update = match session.ingest(bytes) {
+            Ok(update) => update,
+            Err(error) => {
+                self.snapshot.blocks = session.block_states();
+                self.snapshot.last_frame_index = Some(frame.header.global_frame_index);
+                return Err(error);
+            }
+        };
         self.snapshot.blocks = session.block_states();
         self.snapshot.last_frame_index = Some(frame.header.global_frame_index);
         let controller_update = match update {

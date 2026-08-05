@@ -23,6 +23,7 @@ pub enum MobileBlockKind {
     Missing,
     Partial,
     Complete,
+    Failed,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -49,6 +50,11 @@ impl From<&BlockState> for MobileBlockState {
                 kind: MobileBlockKind::Complete,
                 unique: 0,
                 required: 0,
+            },
+            BlockState::Failed { unique, required } => Self {
+                kind: MobileBlockKind::Failed,
+                unique: *unique,
+                required: *required,
             },
         }
     }
@@ -97,6 +103,7 @@ impl MobileReceiver {
     /// # Errors
     ///
     /// Returns a display-safe protocol error when the frame is invalid.
+    #[allow(clippy::needless_pass_by_value)]
     pub fn ingest(&mut self, frame: Vec<u8>) -> Result<MobileSnapshot, String> {
         self.inner
             .ingest(&frame)

@@ -172,25 +172,25 @@ impl MobileReceiver {
 
 ### 任务 5：iOS 相机接收界面与区块图
 
-- [ ] **步骤 1：编写失败的 Dart 测试**
+- [x] **步骤 1：编写失败的 Dart 测试**
 
 状态模型测试覆盖：灰/黄/绿/红四种区块；部分区块计算总体进度且完成前不超过 99%；10 秒滑动窗口带宽；只有 Rust 返回 `Complete` 时显示“接收完成”。Widget 测试覆盖等待清单、接收中和完成三种页面。
 
-- [ ] **步骤 2：验证红灯**
+- [x] **步骤 2：验证红灯**
 
 运行：`flutter test`
 
 预期：因接收状态模型和页面尚不存在而失败。
 
-- [ ] **步骤 3：最小实现**
+- [x] **步骤 3：最小实现**
 
 使用 `flutter_zxing` 2.3 的 `ReaderWidget`，只接受 QR Code，并把解码结果的原始 `bytes` 送入 Rust。相机回调忙时直接丢帧，不排队。页面包含取景框、文件名和大小、总进度、区块图、瞬时/稳定带宽、最近帧号；完成后把字节写入临时文件并调用系统分享面板。
 
-- [ ] **步骤 4：iOS 配置**
+- [x] **步骤 4：iOS 配置**
 
 设置 bundle id `com.blackhook.qrbeam`、最低 iOS 13、`NSCameraUsageDescription=QRBeam 需要相机读取电脑屏幕上的二维码`，不申请麦克风、通讯录、蓝牙和网络权限。
 
-- [ ] **步骤 5：验证绿灯**
+- [x] **步骤 5：验证绿灯**
 
 运行：`flutter test && flutter analyze && flutter build ios --simulator`
 

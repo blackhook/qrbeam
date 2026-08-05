@@ -118,3 +118,46 @@ fn data_before_a_manifest_is_rejected_without_changing_snapshot() {
     );
     assert_eq!(receiver.snapshot(), &before);
 }
+
+#[test]
+fn segment_crc_failure_marks_the_block_for_backfill() {
+    let data = sample_data(1_024);
+    let mut sender = SendSession::new("failed.bin", "", &data, [0x44; 16], 99).unwrap();
+    let mut damaged_manifest = sender.manifest().clone();
+    damaged_manifest.segment_crc32c[0] ^= 1;
+    let mut receiver = ReceiverController::new();
+    for (index, fragment) in damaged_manifest
+        .fragments()
+        .unwrap()
+        .into_iter()
+        .enumerate()
+    {
+        let frame = fragment
+            .into_frame(
+                damaged_manifest.session_id,
+                damaged_manifest.file_id,
+                u64::try_from(index).unwrap(),
+                0,
+                0,
+            )
+            .unwrap()
+            .encode()
+            .unwrap();
+        receiver.ingest(&frame).unwrap();
+    }
+
+    for _ in 0..8 {
+        let frame = sender.next_frames(&[CHANNEL]).unwrap().remove(0);
+        if receiver.ingest(&frame).is_err() {
+            break;
+        }
+    }
+
+    assert_eq!(
+        receiver.snapshot().blocks,
+        vec![BlockState::Failed {
+            unique: 4,
+            required: 4,
+        }]
+    );
+}

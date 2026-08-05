@@ -14,6 +14,7 @@ pub enum BlockState {
     Missing,
     Partial { unique: u32, required: u32 },
     Complete,
+    Failed { unique: u32, required: u32 },
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -226,6 +227,7 @@ pub struct ReceiveSession {
     completed_segments: Vec<Option<Vec<u8>>>,
     unique_symbols: Vec<u32>,
     required_symbols: Vec<u32>,
+    failed_segments: Vec<bool>,
     seen_frames: HashSet<(u64, u8)>,
     completed_file: Option<Vec<u8>>,
 }
@@ -263,6 +265,7 @@ impl ReceiveSession {
             completed_segments: vec![None; segment_count],
             unique_symbols: vec![0; segment_count],
             required_symbols,
+            failed_segments: vec![false; segment_count],
             seen_frames: HashSet::new(),
             completed_file: None,
         })
@@ -333,10 +336,21 @@ impl ReceiveSession {
                         .map_err(|_| ProtocolError::InvalidFramePlan("packet offset overflow"))?,
                 )
                 .ok_or(ProtocolError::InvalidSymbolRange)?;
-            match self.segment_decoders[segment_index].push(SymbolPacket {
+            let update = self.segment_decoders[segment_index].push(SymbolPacket {
                 esi,
                 data: symbol.to_vec(),
-            })? {
+            });
+            let update = match update {
+                Ok(update) => update,
+                Err(error @ ProtocolError::SegmentCrcMismatch { .. }) => {
+                    self.unique_symbols[segment_index] =
+                        self.segment_decoders[segment_index].unique_symbol_count();
+                    self.failed_segments[segment_index] = true;
+                    return Err(error);
+                }
+                Err(error) => return Err(error),
+            };
+            match update {
                 SegmentUpdate::Accepted { unique_symbols } => {
                     self.unique_symbols[segment_index] = unique_symbols;
                     accepted = true;
@@ -344,6 +358,7 @@ impl ReceiveSession {
                 SegmentUpdate::Duplicate => {}
                 SegmentUpdate::Complete(data) => {
                     self.unique_symbols[segment_index] = self.required_symbols[segment_index];
+                    self.failed_segments[segment_index] = false;
                     completed = Some(data);
                     accepted = true;
                 }
@@ -373,6 +388,11 @@ impl ReceiveSession {
             .map(|(index, completed)| {
                 if completed.is_some() {
                     BlockState::Complete
+                } else if self.failed_segments[index] {
+                    BlockState::Failed {
+                        unique: self.unique_symbols[index],
+                        required: self.required_symbols[index],
+                    }
                 } else if self.unique_symbols[index] == 0 {
                     BlockState::Missing
                 } else {

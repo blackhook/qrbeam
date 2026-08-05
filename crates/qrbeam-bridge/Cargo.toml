@@ -1,5 +1,5 @@
 [package]
-name = "qrbeam-bridge"
+name = "rust_lib_qrbeam_mobile"
 version = "0.1.0"
 edition.workspace = true
 rust-version.workspace = true
