@@ -68,4 +68,19 @@ pub enum ProtocolError {
     FrameNotAvailable(u64),
     #[error("timeline does not contain segment {0}")]
     SegmentNotAvailable(u32),
+    #[error("frame belongs to a different session")]
+    SessionMismatch,
+    #[error("frame belongs to a different file")]
+    FileIdMismatch,
+    #[error("frame type cannot be ingested by a data session")]
+    UnexpectedFrameType,
+    #[error("frame plan is invalid: {0}")]
+    InvalidFramePlan(&'static str),
+    #[error("restored file length mismatch: expected {expected}, got {actual}")]
+    FileLengthMismatch { expected: u64, actual: u64 },
+    #[error("restored file BLAKE3 mismatch: expected {expected:?}, calculated {actual:?}")]
+    FileHashMismatch {
+        expected: [u8; 32],
+        actual: [u8; 32],
+    },
 }

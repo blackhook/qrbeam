@@ -558,9 +558,9 @@ git commit -m "feat: 添加可寻址发送时间轴"
 - 创建：`crates/qrbeam-core/tests/end_to_end.rs`
 - 修改：`crates/qrbeam-core/src/lib.rs`
 
-- [ ] **步骤 1：编写失败的端到端测试**
+- [x] **步骤 1：编写失败的端到端测试**
 
-生成 `1_200_123` 字节确定性文件，使其跨越 3 个区块。发送端持续生成系统帧和修复帧；测试信道按固定 xorshift64 种子执行 50% 丢帧、每第 11 帧重复、每 17 帧翻转一位并把批次逆序。接收端必须丢弃 CRC 错误、忽略重复、接受乱序，并最终逐字节还原文件。另测未知会话被拒绝、文件 BLAKE3 不匹配时不返回 `Complete`。
+生成 `1_200_123` 字节确定性文件，使其跨越 3 个区块。发送端持续生成系统帧和修复帧；release 集成测试信道按固定 xorshift64 种子执行 50% 丢帧、每第 11 帧重复、每 17 帧翻转一位并把批次逆序。接收端必须丢弃 CRC 错误、忽略重复、接受乱序，并最终逐字节还原文件。日常 debug 测试使用 64 KiB 文件验证相同闭环；另测未知会话被拒绝、文件 BLAKE3 不匹配时不返回 `Complete`。
 
 核心断言：
 
@@ -577,17 +577,18 @@ for frame_bytes in damaged_reordered_stream(&sender, 0x1234_5678_9abc_def0) {
 panic!("receiver did not complete under the deterministic loss profile");
 ```
 
-- [ ] **步骤 2：运行测试验证红灯**
+- [x] **步骤 2：运行测试验证红灯**
 
 运行：
 
 ```bash
 /Users/blackhook/.cargo/bin/cargo test -p qrbeam-core --test end_to_end
+/Users/blackhook/.cargo/bin/cargo test --release -p qrbeam-core --test end_to_end large_file_survives_deterministic_damaged_channel -- --exact
 ```
 
-预期：FAIL，原因是文件级发送和接收会话不存在。
+预期：两个命令都 FAIL，原因是文件级发送和接收会话不存在。
 
-- [ ] **步骤 3：实现文件级会话和区块图状态**
+- [x] **步骤 3：实现文件级会话和区块图状态**
 
 公开 API 固定为：
 
@@ -609,19 +610,20 @@ pub struct ReceiveSession {
 
 `SendSession::new` 验证 100 MB 上限、计算文件 BLAKE3、按 512 KiB 分块和 CRC32C、创建 Manifest 和 SegmentEncoder。`frame_for_plan` 根据 `FramePlan` 重新生成确定 payload 并编码成 Frame。`ReceiveSession::ingest` 先解析和验证 Frame，再验证 session/file/segment/符号范围，最后把符号送入对应 SegmentDecoder。完成区块写入内存中的独立 `Vec<u8>`；全部区块完成后按顺序拼接并验证 BLAKE3。第一阶段允许最终拼接保存在内存，后续存储计划把相同接口替换为分段存储后端。
 
-- [ ] **步骤 4：运行端到端测试和全量检查验证绿灯**
+- [x] **步骤 4：运行端到端测试和全量检查验证绿灯**
 
 运行：
 
 ```bash
 /Users/blackhook/.cargo/bin/cargo test -p qrbeam-core --test end_to_end
+/Users/blackhook/.cargo/bin/cargo test --release -p qrbeam-core --test end_to_end large_file_survives_deterministic_damaged_channel -- --exact
 /Users/blackhook/.cargo/bin/cargo test --workspace
 /Users/blackhook/.cargo/bin/cargo clippy --workspace --all-targets -- -D warnings
 ```
 
 预期：端到端测试在确定性 50% 丢帧、重复、乱序和损坏条件下完成；全部测试和 Clippy 通过。
 
-- [ ] **步骤 5：Commit**
+- [x] **步骤 5：Commit**
 
 ```bash
 git add crates/qrbeam-core/src crates/qrbeam-core/tests/end_to_end.rs

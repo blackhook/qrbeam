@@ -23,6 +23,7 @@ pub struct SegmentEncoder {
     actual_length: usize,
     source_symbol_count: u32,
     encoder: SourceBlockEncoder,
+    source_packets: Vec<SymbolPacket>,
 }
 
 impl SegmentEncoder {
@@ -49,11 +50,17 @@ impl SegmentEncoder {
             .ok_or(ProtocolError::InvalidSymbolRange)?;
         let source_symbol_count = u32::try_from(data.len().div_ceil(SYMBOL_BYTES))
             .map_err(|_| ProtocolError::InvalidSymbolRange)?;
+        let source_packets = source_block
+            .source_packets()
+            .into_iter()
+            .map(packet_from_raptorq)
+            .collect();
         Ok(Self {
             index,
             actual_length: data.len(),
             source_symbol_count,
             encoder: source_block,
+            source_packets,
         })
     }
 
@@ -74,11 +81,29 @@ impl SegmentEncoder {
 
     #[must_use]
     pub fn source_packets(&self) -> Vec<SymbolPacket> {
-        self.encoder
-            .source_packets()
-            .into_iter()
-            .map(packet_from_raptorq)
-            .collect()
+        self.source_packets.clone()
+    }
+
+    /// Returns a contiguous range of systematic source symbols.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ProtocolError`] when the requested source ESI range is
+    /// outside this segment.
+    pub fn source_packet_range(
+        &self,
+        first: u32,
+        count: u16,
+    ) -> Result<Vec<SymbolPacket>, ProtocolError> {
+        let end = first
+            .checked_add(u32::from(count))
+            .ok_or(ProtocolError::InvalidSymbolRange)?;
+        if count == 0 || end > self.source_symbol_count {
+            return Err(ProtocolError::InvalidSymbolRange);
+        }
+        let start_index = usize::try_from(first).map_err(|_| ProtocolError::InvalidSymbolRange)?;
+        let end_index = usize::try_from(end).map_err(|_| ProtocolError::InvalidSymbolRange)?;
+        Ok(self.source_packets[start_index..end_index].to_vec())
     }
 
     /// Generates a deterministic range of repair symbols.
