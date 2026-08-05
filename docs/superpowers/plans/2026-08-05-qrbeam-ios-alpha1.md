@@ -27,17 +27,17 @@
 
 ### 任务 1：统一 Rust 接收控制器
 
-- [ ] **步骤 1：编写失败测试**
+- [x] **步骤 1：编写失败测试**
 
 在 `crates/qrbeam-core/tests/receiver_controller.rs` 构造 `SendSession`，先重复喂入全部清单帧，再乱序、丢帧地喂入数据和修复帧，断言状态依次为 `WaitingManifest`、`Receiving`、`Complete`，完成字节与原文件完全一致。
 
-- [ ] **步骤 2：验证红灯**
+- [x] **步骤 2：验证红灯**
 
 运行：`cargo test -p qrbeam-core --test receiver_controller`
 
 预期：因 `ReceiverController` 尚不存在而编译失败。
 
-- [ ] **步骤 3：最小实现**
+- [x] **步骤 3：最小实现**
 
 创建以下公开模型，并让 `ingest` 先执行 `Frame::decode`，清单阶段交给 `ManifestAssembler`，数据阶段交给 `ReceiveSession`：
 
@@ -59,13 +59,13 @@ pub struct ReceiverController {
 }
 ```
 
-- [ ] **步骤 4：验证绿灯和回归**
+- [x] **步骤 4：验证绿灯和回归**
 
 运行：`cargo test -p qrbeam-core --test receiver_controller && cargo test --workspace`
 
 预期：新增测试通过；既有 37 个非忽略测试继续通过。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 提交信息：`feat(core): 添加统一接收控制器`
 
@@ -149,7 +149,7 @@ let qr = QrCode::encode_segments_advanced(
 
 - [ ] **步骤 3：生成脚手架并做最小实现**
 
-用 Flutter 官方模板创建 `apps/qrbeam_mobile`，用 flutter_rust_bridge Native Assets 后端接入工作区中的 `qrbeam-bridge`。桥 API 只暴露：
+先把根目录 `rust-toolchain.toml` 的 channel 从浮动 `stable` 固定为本机已验证的 `1.97.1`，并加入 iOS device/simulator targets。再用 Flutter 官方模板创建 `apps/qrbeam_mobile`，用 flutter_rust_bridge Native Assets 后端接入工作区中的 `qrbeam-bridge`。桥 API 只暴露：
 
 ```rust
 pub struct MobileReceiver { inner: ReceiverController }
@@ -234,4 +234,3 @@ flutter build ios --release --no-codesign
 提交信息：`ci(ios): 添加 Alpha 1 构建与产物校验`
 
 推送 `feat/ios-receiver`，在 GitHub 创建 Draft PR，附测试结果、IPA 签名状态、文件大小和 SHA-256。
-
