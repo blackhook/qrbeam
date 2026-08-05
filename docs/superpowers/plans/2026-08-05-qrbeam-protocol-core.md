@@ -161,7 +161,7 @@ git commit -m "chore: 初始化 QRBeam Rust 协议工作区"
 - 创建：`crates/qrbeam-core/tests/frame_wire.rs`
 - 修改：`crates/qrbeam-core/src/lib.rs`
 
-- [ ] **步骤 1：编写失败的帧往返和黄金字节测试**
+- [x] **步骤 1：编写失败的帧往返和黄金字节测试**
 
 测试构造 `FrameHeader`：session 为 `[0x11; 16]`、file ID `0x0102_0304`、全局帧 `0x0102_0304_0506_0708`、区块 9、首符号 10、符号数 1、payload 为 256 个 `0xA5`。断言：
 
@@ -175,7 +175,7 @@ assert_eq!(Frame::decode(&bytes).unwrap(), frame);
 
 另写三个独立测试：翻转 payload 一位返回 `ProtocolError::CrcMismatch`；未知 frame type 返回 `ProtocolError::UnknownFrameType`；超过 `MAX_FRAME_PAYLOAD_BYTES` 返回 `ProtocolError::PayloadTooLarge`。
 
-- [ ] **步骤 2：运行测试验证红灯**
+- [x] **步骤 2：运行测试验证红灯**
 
 运行：
 
@@ -185,7 +185,7 @@ assert_eq!(Frame::decode(&bytes).unwrap(), frame);
 
 预期：FAIL，原因是 `frame` 模块和公开类型尚不存在。
 
-- [ ] **步骤 3：实现最小帧编码和解析**
+- [x] **步骤 3：实现最小帧编码和解析**
 
 公开 API 固定为：
 
@@ -219,7 +219,7 @@ impl Frame {
 
 `encode` 验证 payload 上限、`u16` 长度、符号帧的 `payload.len() == symbol_count * SYMBOL_BYTES` 和 24 位 RaptorQ ESI 上限。`decode` 在任何切片前验证最小长度、magic、版本、header length、payload length和 CRC，不对不可信输入执行 panic。
 
-- [ ] **步骤 4：运行帧测试和全量检查验证绿灯**
+- [x] **步骤 4：运行帧测试和全量检查验证绿灯**
 
 运行：
 
@@ -230,7 +230,7 @@ impl Frame {
 
 预期：帧测试全部通过，Clippy 0 error。
 
-- [ ] **步骤 5：Commit**
+- [x] **步骤 5：Commit**
 
 ```bash
 git add crates/qrbeam-core/src crates/qrbeam-core/tests/frame_wire.rs
