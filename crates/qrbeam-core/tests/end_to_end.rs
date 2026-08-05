@@ -153,3 +153,34 @@ fn block_map_moves_from_missing_to_partial_and_ignores_replayed_frame() {
     );
     assert_eq!(receiver.ingest(&frame), Ok(ReceiveUpdate::IgnoredDuplicate));
 }
+
+#[test]
+fn one_byte_and_one_kilobyte_round_trip_exactly() {
+    for length in [1, 1_000] {
+        assert_eq!(round_trip_without_loss(length), data_with_length(length));
+    }
+}
+
+#[test]
+#[cfg_attr(debug_assertions, ignore = "one MiB RaptorQ encoding runs in release")]
+fn one_megabyte_round_trips_exactly() {
+    assert_eq!(
+        round_trip_without_loss(1_000_000),
+        data_with_length(1_000_000)
+    );
+}
+
+fn round_trip_without_loss(length: usize) -> Vec<u8> {
+    let data = data_with_length(length);
+    let mut sender = SendSession::new("sizes.bin", "", &data, [9; 16], 99).unwrap();
+    let mut receiver = ReceiveSession::new(sender.manifest().clone()).unwrap();
+
+    for _ in 0..5_000 {
+        for frame in sender.next_frames(&[CHANNEL]).unwrap() {
+            if let ReceiveUpdate::Complete(file) = receiver.ingest(&frame).unwrap() {
+                return file;
+            }
+        }
+    }
+    panic!("receiver did not complete {length} bytes without loss");
+}

@@ -28,6 +28,13 @@ fn rewrite_crc(bytes: &mut [u8]) {
     bytes[52..56].copy_from_slice(&crc.to_le_bytes());
 }
 
+fn decode_hex(hex: &str) -> Vec<u8> {
+    (0..hex.len())
+        .step_by(2)
+        .map(|index| u8::from_str_radix(&hex[index..index + 2], 16).unwrap())
+        .collect()
+}
+
 #[test]
 fn frame_round_trips_with_fixed_little_endian_offsets() {
     let frame = data_frame();
@@ -123,4 +130,22 @@ fn truncated_frame_is_rejected_without_panicking() {
             minimum: FRAME_HEADER_BYTES,
         })
     );
+}
+
+#[test]
+fn frame_encoding_matches_independent_golden_bytes() {
+    let mut expected = decode_hex(concat!(
+        "5152424d0103000203003800",
+        "11111111111111111111111111111111",
+        "04030201",
+        "0807060504030201",
+        "09000000",
+        "0a000000",
+        "0100",
+        "0001",
+        "34387042",
+    ));
+    expected.extend([0xA5; SYMBOL_BYTES]);
+
+    assert_eq!(data_frame().encode().unwrap(), expected);
 }

@@ -637,11 +637,11 @@ git commit -m "feat: 打通文件光学传输协议闭环"
 - 修改：`crates/qrbeam-core/tests/frame_wire.rs`
 - 修改：`crates/qrbeam-core/tests/manifest_wire.rs`
 
-- [ ] **步骤 1：记录独立黄金向量**
+- [x] **步骤 1：记录独立黄金向量**
 
 把固定 Frame 和 Manifest 的完整十六进制编码写成测试常量，测试必须把新编码结果与常量直接比较，而不是只做本库 encode/decode 往返。记录向量输入字段、输出长度、CRC32C 和 BLAKE3。
 
-- [ ] **步骤 2：故意改变一个黄金向量字节并验证红灯**
+- [x] **步骤 2：故意改变一个黄金向量字节并验证红灯**
 
 运行：
 
@@ -651,11 +651,11 @@ git commit -m "feat: 打通文件光学传输协议闭环"
 
 预期：FAIL，报告首个不一致字节。随后恢复正确黄金向量。
 
-- [ ] **步骤 3：编写完整线协议文档**
+- [x] **步骤 3：编写完整线协议文档**
 
 文档逐字节说明 56 字节帧头、所有枚举值、清单字段顺序、整数端序、CRC 覆盖规则、BLAKE3 用途、清单分片映射、RaptorQ ESI 和区块索引关系，并嵌入测试中的黄金向量。文档明确未知版本和未知枚举必须拒绝，保留字段必须为 0。
 
-- [ ] **步骤 4：运行发布前验证**
+- [x] **步骤 4：运行发布前验证**
 
 运行：
 
@@ -669,7 +669,7 @@ git diff --check
 
 预期：所有命令退出码为 0，测试 0 failed，文档构建无 warning。
 
-- [ ] **步骤 5：Commit**
+- [x] **步骤 5：Commit**
 
 ```bash
 git add docs/protocol crates/qrbeam-core/tests

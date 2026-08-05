@@ -22,6 +22,13 @@ fn sample_manifest() -> Manifest {
     }
 }
 
+fn decode_hex(hex: &str) -> Vec<u8> {
+    (0..hex.len())
+        .step_by(2)
+        .map(|index| u8::from_str_radix(&hex[index..index + 2], 16).unwrap())
+        .collect()
+}
+
 #[test]
 fn manifest_round_trips_with_all_profiles_and_segment_checksums() {
     let manifest = sample_manifest();
@@ -155,4 +162,36 @@ fn changed_manifest_bytes_fail_internal_crc() {
         Manifest::decode(&encoded),
         Err(ProtocolError::ManifestCrcMismatch { .. })
     ));
+}
+
+#[test]
+fn manifest_encoding_matches_independent_golden_bytes() {
+    let expected = decode_hex(concat!(
+        "51524d4601000000",
+        "22222222222222222222222222222222",
+        "07000000",
+        "40420f0000000000",
+        "40420f0000000000",
+        "3333333333333333333333333333333333333333333333333333333333333333",
+        "00000800",
+        "0001",
+        "04",
+        "00",
+        "40420700",
+        "44444444444444444444444444444444",
+        "0b00",
+        "1800",
+        "02000000",
+        "6578616d706c652e62696e",
+        "6170706c69636174696f6e2f6f637465742d73747265616d",
+        "0001010806280000",
+        "0105001806280000",
+        "0208001e04280000",
+        "030a003c04280000",
+        "78563412",
+        "efcdab90",
+        "6f2ca8c9",
+    ));
+
+    assert_eq!(sample_manifest().encode().unwrap(), expected);
 }
