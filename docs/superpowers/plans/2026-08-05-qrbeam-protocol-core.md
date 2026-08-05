@@ -375,9 +375,9 @@ git commit -m "feat: 添加文件清单和分片协议"
 - 创建：`crates/qrbeam-core/tests/segment_recovery.rs`
 - 修改：`crates/qrbeam-core/src/lib.rs`
 
-- [ ] **步骤 1：编写失败的区块恢复测试**
+- [x] **步骤 1：编写失败的区块恢复测试**
 
-使用确定性数据 `(0..600_000).map(|i| (i % 251) as u8)`。测试分别验证：完整系统符号直接恢复；丢弃 50% 系统符号后加入足量修复符号恢复；符号乱序仍恢复；重复 ESI 返回 `SegmentUpdate::Duplicate`；载荷损坏但帧 CRC 被重新计算时最终区块 CRC 拒绝完成；最后不足 256 字节的区块按实际长度还原。
+使用确定性数据 `(0..500_123).map(|i| (i % 251) as u8)`。测试分别验证：完整系统符号直接恢复；丢弃 50% 系统符号后加入足量修复符号恢复；符号乱序仍恢复；重复 ESI 返回 `SegmentUpdate::Duplicate`；载荷损坏但帧 CRC 被重新计算时最终区块 CRC 拒绝完成；最后不足 256 字节的区块按实际长度还原。
 
 单个测试的核心过程：
 
@@ -387,7 +387,7 @@ let mut decoder = SegmentDecoder::new(3, data.len(), crc32c::crc32c(&data)).unwr
 for packet in encoder.source_packets().into_iter().step_by(2) {
     decoder.push(packet).unwrap();
 }
-for packet in encoder.repair_packets(0, encoder.source_symbol_count() + 64) {
+for packet in encoder.repair_packets(0, encoder.source_symbol_count() / 2 + 64).unwrap() {
     if let SegmentUpdate::Complete(restored) = decoder.push(packet).unwrap() {
         assert_eq!(restored, data);
         return;
@@ -396,7 +396,7 @@ for packet in encoder.repair_packets(0, encoder.source_symbol_count() + 64) {
 panic!("repair symbols did not complete the segment");
 ```
 
-- [ ] **步骤 2：运行测试验证红灯**
+- [x] **步骤 2：运行测试验证红灯**
 
 运行：
 
@@ -406,7 +406,7 @@ panic!("repair symbols did not complete the segment");
 
 预期：FAIL，原因是区块编码器和解码器不存在。
 
-- [ ] **步骤 3：实现 RaptorQ 包装层**
+- [x] **步骤 3：实现 RaptorQ 包装层**
 
 公开 API 固定为：
 
@@ -424,7 +424,7 @@ impl SegmentEncoder {
     pub fn new(index: u32, data: &[u8]) -> Result<Self, ProtocolError>;
     pub fn source_symbol_count(&self) -> u32;
     pub fn source_packets(&self) -> Vec<SymbolPacket>;
-    pub fn repair_packets(&self, start: u32, count: u32) -> Vec<SymbolPacket>;
+    pub fn repair_packets(&self, start: u32, count: u32) -> Result<Vec<SymbolPacket>, ProtocolError>;
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -446,7 +446,7 @@ impl SegmentDecoder {
 
 每个区块创建一个 `raptorq::SourceBlockEncoder`/`SourceBlockDecoder`，RaptorQ source block ID 固定为 0。进入库前验证 ESI 小于 `1 << 24`、payload 恰好为 256 字节、区块长度不超过 512 KiB。RaptorQ 返回结果后截断到实际长度并验证 CRC32C；失败返回错误且不得把区块标记为完成。
 
-- [ ] **步骤 4：运行区块测试和全量检查验证绿灯**
+- [x] **步骤 4：运行区块测试和全量检查验证绿灯**
 
 运行：
 
@@ -458,7 +458,7 @@ impl SegmentDecoder {
 
 预期：全部测试通过，Clippy 0 error。
 
-- [ ] **步骤 5：Commit**
+- [x] **步骤 5：Commit**
 
 ```bash
 git add crates/qrbeam-core/src crates/qrbeam-core/tests/segment_recovery.rs

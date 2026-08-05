@@ -44,4 +44,22 @@ pub enum ProtocolError {
     InvalidManifestFragment(&'static str),
     #[error("manifest fragment conflicts with an already received fragment")]
     ManifestFragmentConflict,
+    #[error(
+        "segment length is outside protocol bounds: got {actual}, expected {minimum}..={maximum}"
+    )]
+    SegmentLengthOutOfRange {
+        actual: usize,
+        minimum: usize,
+        maximum: usize,
+    },
+    #[error("symbol payload length is invalid: got {actual}, expected {expected}")]
+    InvalidSymbolPayloadLength { actual: usize, expected: usize },
+    #[error(
+        "segment {segment_index} CRC32C mismatch: expected {expected:#010x}, calculated {actual:#010x}"
+    )]
+    SegmentCrcMismatch {
+        segment_index: u32,
+        expected: u32,
+        actual: u32,
+    },
 }

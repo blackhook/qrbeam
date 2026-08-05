@@ -18,3 +18,9 @@ unsafe_code = "forbid"
 [workspace.lints.clippy]
 all = "warn"
 pedantic = "warn"
+
+[profile.dev.package.raptorq]
+opt-level = 3
+
+[profile.test.package.raptorq]
+opt-level = 3
