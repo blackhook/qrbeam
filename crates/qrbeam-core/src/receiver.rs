@@ -54,12 +54,12 @@ impl ReceiverController {
         Self::default()
     }
 
-    /// Validates and ingests one QRBeam wire frame.
+    /// Validates and ingests one `QRBeam` wire frame.
     ///
     /// # Errors
     ///
     /// Returns [`ProtocolError`] when the frame, manifest, session identity,
-    /// RaptorQ symbol range, segment checksum, or final file hash is invalid.
+    /// `RaptorQ` symbol range, segment checksum, or final file hash is invalid.
     pub fn ingest(&mut self, bytes: &[u8]) -> Result<ControllerUpdate, ProtocolError> {
         let frame = Frame::decode(bytes)?;
         match frame.header.frame_type {

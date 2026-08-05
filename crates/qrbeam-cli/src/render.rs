@@ -51,13 +51,19 @@ impl QrMatrix {
         .map_err(|_| RenderError::PayloadTooLarge {
             actual: bytes.len(),
         })?;
-        let qr_size = usize::try_from(qr.size()).expect("QR size is always positive");
+        let qr_size = usize::try_from(qr.size()).map_err(|_| RenderError::PayloadTooLarge {
+            actual: bytes.len(),
+        })?;
         let size = qr_size + QUIET_ZONE_MODULES * 2;
         let mut modules = vec![false; size * size];
         for y in 0..qr_size {
             for x in 0..qr_size {
-                let qr_x = i32::try_from(x).expect("Version 40 fits in i32");
-                let qr_y = i32::try_from(y).expect("Version 40 fits in i32");
+                let qr_x = i32::try_from(x).map_err(|_| RenderError::PayloadTooLarge {
+                    actual: bytes.len(),
+                })?;
+                let qr_y = i32::try_from(y).map_err(|_| RenderError::PayloadTooLarge {
+                    actual: bytes.len(),
+                })?;
                 let target = (y + QUIET_ZONE_MODULES) * size + x + QUIET_ZONE_MODULES;
                 modules[target] = qr.get_module(qr_x, qr_y);
             }
