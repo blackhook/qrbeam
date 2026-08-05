@@ -229,7 +229,7 @@ flutter build ios --release --no-codesign
 
 若钥匙串和描述文件可用，运行 `flutter build ipa --release` 并记录 SHA-256；否则从无签名 release `Runner.app` 生成明确命名的 `QRBeam-Alpha1-unsigned.ipa`，同时标记它必须经用户自己的 Apple 证书签名后才能安装。
 
-- [ ] **步骤 5：提交并推送**
+- [x] **步骤 5：提交并推送**
 
 提交信息：`ci(ios): 添加 Alpha 1 构建与产物校验`
 
