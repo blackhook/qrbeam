@@ -472,23 +472,23 @@ git commit -m "feat: 实现分段 RaptorQ 恢复"
 - 创建：`crates/qrbeam-core/tests/timeline.rs`
 - 修改：`crates/qrbeam-core/src/lib.rs`
 
-- [ ] **步骤 1：编写失败的时间轴测试**
+- [x] **步骤 1：编写失败的时间轴测试**
 
 测试验证：全局帧号从 0 单调增加；同一显示 tick 的多通道计划共享全局帧号但通道不同；不同通道分配不同 ESI；`seek_back(100)` 饱和到 0；`seek_segment(7)` 返回最近包含区块 7 的历史帧；进入回补模式后只生成指定区块的新 repair ESI；退出回补后继续原时间轴；档位变化不改变 session ID 和 file ID。
 
 时间轴测试使用：
 
 ```rust
-let mut timeline = Timeline::new([0x55; 16], 9, vec![4, 4, 2]);
+let mut timeline = Timeline::new([0x55; 16], 9, vec![4, 4, 2]).unwrap();
 let plans = timeline.next_tick(&[
     ChannelRequest { channel_id: 0, profile_id: 1, symbols_per_frame: 1 },
     ChannelRequest { channel_id: 1, profile_id: 2, symbols_per_frame: 2 },
-]);
+]).unwrap();
 assert_eq!(plans[0].global_frame_index, plans[1].global_frame_index);
 assert_ne!(plans[0].first_symbol_id, plans[1].first_symbol_id);
 ```
 
-- [ ] **步骤 2：运行测试验证红灯**
+- [x] **步骤 2：运行测试验证红灯**
 
 运行：
 
@@ -498,7 +498,7 @@ assert_ne!(plans[0].first_symbol_id, plans[1].first_symbol_id);
 
 预期：FAIL，原因是 `timeline` 模块不存在。
 
-- [ ] **步骤 3：实现历史元数据和回补状态机**
+- [x] **步骤 3：实现历史元数据和回补状态机**
 
 公开 API 固定为：
 
@@ -532,7 +532,7 @@ pub struct Timeline {
 
 提供 `new`、`next_tick`、`seek_frame`、`seek_back`、`seek_forward`、`seek_segment`、`start_repair`、`stop_repair` 和 `current_frame`。历史只保存 `FramePlan`，不保存二维码图片或 payload。新计划先遍历全部区块的系统符号，再按区块轮询生成从未使用过的 repair ESI。
 
-- [ ] **步骤 4：运行时间轴测试和全量检查验证绿灯**
+- [x] **步骤 4：运行时间轴测试和全量检查验证绿灯**
 
 运行：
 
@@ -544,7 +544,7 @@ pub struct Timeline {
 
 预期：全部测试通过，Clippy 0 error。
 
-- [ ] **步骤 5：Commit**
+- [x] **步骤 5：Commit**
 
 ```bash
 git add crates/qrbeam-core/src crates/qrbeam-core/tests/timeline.rs

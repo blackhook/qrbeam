@@ -62,4 +62,10 @@ pub enum ProtocolError {
         expected: u32,
         actual: u32,
     },
+    #[error("invalid timeline: {0}")]
+    InvalidTimeline(&'static str),
+    #[error("timeline does not contain frame {0}")]
+    FrameNotAvailable(u64),
+    #[error("timeline does not contain segment {0}")]
+    SegmentNotAvailable(u32),
 }
