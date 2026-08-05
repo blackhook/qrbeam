@@ -11,7 +11,7 @@ use crossterm::execute;
 use crossterm::terminal::{self, Clear, ClearType};
 use qrbeam_cli::player::{PlaybackPhase, Player};
 use qrbeam_cli::render::{QrEcc, QrMatrix};
-use qrbeam_cli::terminal::{RawMode, TerminalSurface};
+use qrbeam_cli::terminal::{RawMode, TerminalSurface, write_raw_line};
 use qrbeam_core::manifest::EccLevel;
 use qrbeam_core::session::SendSession;
 
@@ -111,24 +111,26 @@ fn send(path: &Path, fps: u8) -> Result<(), Box<dyn Error>> {
         terminal
             .writer_mut()
             .write_all(matrix.render_ansi().as_bytes())?;
-        writeln!(
+        write_raw_line(
             terminal.writer_mut(),
-            "QRBeam Alpha 1  {}  frame {}  {} FPS  {}",
-            match frame.phase {
-                PlaybackPhase::Manifest => "清单",
-                PlaybackPhase::Data => "数据",
-            },
-            frame.logical_index,
-            fps,
-            if player.is_paused() {
-                "已暂停"
-            } else {
-                "发送中"
-            }
+            format_args!(
+                "QRBeam Alpha 1  {}  frame {}  {} FPS  {}",
+                match frame.phase {
+                    PlaybackPhase::Manifest => "清单",
+                    PlaybackPhase::Data => "数据",
+                },
+                frame.logical_index,
+                fps,
+                if player.is_paused() {
+                    "已暂停"
+                } else {
+                    "发送中"
+                }
+            ),
         )?;
-        writeln!(
+        write_raw_line(
             terminal.writer_mut(),
-            "Space 暂停  J/L ±100 帧  Home 重发清单  Q/Esc 退出"
+            format_args!("Space 暂停  J/L ±100 帧  Home 重发清单  Q/Esc 退出"),
         )?;
         terminal.writer_mut().flush()?;
 

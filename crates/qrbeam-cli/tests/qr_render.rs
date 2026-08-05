@@ -44,3 +44,17 @@ fn ansi_half_blocks_pack_two_module_rows_into_one_terminal_row() {
     assert_eq!(rendered.lines().count(), matrix.size().div_ceil(2));
     assert!(rendered.contains('▀'));
 }
+
+#[test]
+fn ansi_rows_return_to_column_zero_in_raw_mode() {
+    let matrix = QrMatrix::encode(&frame_bytes(), QrEcc::Medium).unwrap();
+    let rendered = matrix.render_ansi();
+
+    for newline in rendered.match_indices('\n').map(|(index, _)| index) {
+        assert_eq!(
+            rendered.as_bytes().get(newline.saturating_sub(1)),
+            Some(&b'\r'),
+            "raw terminals require CRLF; bare LF makes each QR row drift right"
+        );
+    }
+}

@@ -1,9 +1,20 @@
+use std::fmt;
 use std::io::{self, Write};
 
 use crossterm::cursor::{Hide, Show};
 use crossterm::execute;
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use crossterm::terminal::{disable_raw_mode, enable_raw_mode};
+
+/// Writes one display line with an explicit carriage return for raw terminals.
+///
+/// # Errors
+///
+/// Returns an I/O error when the line cannot be written.
+pub fn write_raw_line<W: Write>(writer: &mut W, arguments: fmt::Arguments<'_>) -> io::Result<()> {
+    writer.write_fmt(arguments)?;
+    writer.write_all(b"\r\n")
+}
 
 pub struct RawMode;
 

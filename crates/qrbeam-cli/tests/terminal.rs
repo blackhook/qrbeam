@@ -1,7 +1,7 @@
 use std::io::{self, Write};
 use std::sync::{Arc, Mutex};
 
-use qrbeam_cli::terminal::TerminalSurface;
+use qrbeam_cli::terminal::{TerminalSurface, write_raw_line};
 
 #[derive(Clone, Default)]
 struct SharedWriter(Arc<Mutex<Vec<u8>>>);
@@ -37,4 +37,13 @@ fn dropping_terminal_surface_restores_cursor_and_primary_screen() {
         output.contains("\x1b[?1049l"),
         "must leave alternate screen"
     );
+}
+
+#[test]
+fn status_lines_return_to_column_zero_in_raw_mode() {
+    let mut output = Vec::new();
+
+    write_raw_line(&mut output, format_args!("frame {}", 229)).unwrap();
+
+    assert_eq!(output, b"frame 229\r\n");
 }

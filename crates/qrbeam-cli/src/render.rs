@@ -110,7 +110,7 @@ impl QrMatrix {
                 }
                 output.push('▀');
             }
-            output.push_str("\x1b[0m\n");
+            output.push_str("\x1b[0m\r\n");
         }
         output
     }
