@@ -196,21 +196,21 @@ impl MobileReceiver {
 
 预期：测试和静态检查通过，模拟器 `Runner.app` 构建成功。
 
-- [ ] **步骤 6：提交**
+- [x] **步骤 6：提交**
 
 提交信息：`feat(ios): 添加二维码文件接收界面`
 
 ### 任务 6：构建、体积和离线检查
 
-- [ ] **步骤 1：编写构建脚本验收测试**
+- [x] **步骤 1：编写构建脚本验收测试**
 
 脚本必须在缺少签名时明确输出 `UNSIGNED` 并产出模拟器 App 或无签名 archive；存在签名时才调用 `flutter build ipa`。脚本失败时保持非零退出码，不吞掉 Xcode 错误。
 
-- [ ] **步骤 2：实现构建入口与 GitHub Actions**
+- [x] **步骤 2：实现构建入口与 GitHub Actions**
 
 `scripts/build-ios-alpha.sh` 依次运行 Rust 测试、Flutter 测试、analyze、iOS release 构建和体积检查。`.github/workflows/ios-alpha.yml` 在 macOS runner 上执行相同验证并上传无签名构建产物。
 
-- [ ] **步骤 3：完整验证**
+- [x] **步骤 3：完整验证**
 
 运行：
 
@@ -225,7 +225,7 @@ flutter build ios --release --no-codesign
 
 预期：全部成功；release App 小于 100 MB；二进制中不包含 HTTP/HTTPS 服务地址。
 
-- [ ] **步骤 4：生成 IPA 状态**
+- [x] **步骤 4：生成 IPA 状态**
 
 若钥匙串和描述文件可用，运行 `flutter build ipa --release` 并记录 SHA-256；否则从无签名 release `Runner.app` 生成明确命名的 `QRBeam-Alpha1-unsigned.ipa`，同时标记它必须经用户自己的 Apple 证书签名后才能安装。
 
