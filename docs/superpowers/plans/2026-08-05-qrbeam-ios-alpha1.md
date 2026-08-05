@@ -71,17 +71,17 @@ pub struct ReceiverController {
 
 ### 任务 2：固定二维码矩阵与终端渲染
 
-- [ ] **步骤 1：编写失败测试**
+- [x] **步骤 1：编写失败测试**
 
 在 `crates/qrbeam-cli/tests/qr_render.rs` 验证：相同二进制帧产生完全相同矩阵；矩阵 mask 为 4；四边各有 4 模块静区；过大载荷返回结构化错误；ANSI 输出每两个模块行只占一个终端行。
 
-- [ ] **步骤 2：验证红灯**
+- [x] **步骤 2：验证红灯**
 
 运行：`cargo test -p qrbeam-cli --test qr_render`
 
 预期：因 CLI crate 和 `QrMatrix` 尚不存在而失败。
 
-- [ ] **步骤 3：最小实现**
+- [x] **步骤 3：最小实现**
 
 使用 `qrcodegen::QrSegment::make_bytes` 和高级编码入口锁定 mask 4、关闭纠错自动升级：
 
@@ -99,13 +99,13 @@ let qr = QrCode::encode_segments_advanced(
 
 渲染器用 ANSI 前景/背景色和 `▀` 合并上下两个模块行，并把 4 模块静区计入矩阵。
 
-- [ ] **步骤 4：验证绿灯**
+- [x] **步骤 4：验证绿灯**
 
 运行：`cargo test -p qrbeam-cli --test qr_render`
 
 预期：全部通过。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 提交信息：`feat(cli): 添加固定二维码终端渲染`
 

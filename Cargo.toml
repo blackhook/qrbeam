@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/qrbeam-core"]
+members = ["crates/qrbeam-cli", "crates/qrbeam-core"]
 resolver = "2"
 
 [workspace.package]
@@ -8,8 +8,11 @@ rust-version = "1.97"
 
 [workspace.dependencies]
 blake3 = "=1.8.5"
+crossterm = "=0.29.0"
 crc32c = "=0.6.8"
+qrcodegen = "=1.8.0"
 raptorq = "=2.0.1"
+rand = "=0.9.2"
 thiserror = "=2.0.19"
 
 [workspace.lints.rust]

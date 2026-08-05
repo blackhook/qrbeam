@@ -1,0 +1,23 @@
+[package]
+name = "qrbeam-cli"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+crossterm.workspace = true
+qrcodegen.workspace = true
+qrbeam-core = { path = "../qrbeam-core" }
+rand.workspace = true
+thiserror.workspace = true
+
+[lib]
+name = "qrbeam_cli"
+path = "src/lib.rs"
+
+[[bin]]
+name = "qrbeam"
+path = "src/main.rs"
+
+[lints]
+workspace = true
