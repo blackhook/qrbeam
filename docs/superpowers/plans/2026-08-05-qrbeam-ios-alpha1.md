@@ -137,19 +137,19 @@ let qr = QrCode::encode_segments_advanced(
 
 ### 任务 4：Flutter/Rust 类型安全桥
 
-- [ ] **步骤 1：编写失败测试**
+- [x] **步骤 1：编写失败测试**
 
 在 `qrbeam-bridge` 中从黄金清单和数据帧调用公开桥 API，断言 DTO 中的阶段、文件名、总大小、区块状态和完成字节与核心一致。
 
-- [ ] **步骤 2：验证红灯**
+- [x] **步骤 2：验证红灯**
 
 运行：`cargo test -p qrbeam-bridge`
 
 预期：桥 crate 尚不存在而失败。
 
-- [ ] **步骤 3：生成脚手架并做最小实现**
+- [x] **步骤 3：生成脚手架并做最小实现**
 
-先把根目录 `rust-toolchain.toml` 的 channel 从浮动 `stable` 固定为本机已验证的 `1.97.1`，并加入 iOS device/simulator targets。再用 Flutter 官方模板创建 `apps/qrbeam_mobile`，用 flutter_rust_bridge Native Assets 后端接入工作区中的 `qrbeam-bridge`。桥 API 只暴露：
+确认根目录 `rust-toolchain.toml` 固定为本机已验证的 `1.97.1`，并加入 iOS device/simulator targets。再用 Flutter 官方模板创建 `apps/qrbeam_mobile`，用稳定版 flutter_rust_bridge 2.11.1 的默认 Cargokit 后端接入工作区中的 `qrbeam-bridge`。不采用仍处于 beta 的 Native Assets 后端。桥 API 只暴露：
 
 ```rust
 pub struct MobileReceiver { inner: ReceiverController }
@@ -160,13 +160,13 @@ impl MobileReceiver {
 }
 ```
 
-- [ ] **步骤 4：验证绿灯**
+- [x] **步骤 4：验证绿灯**
 
 运行：`cargo test -p qrbeam-bridge && flutter analyze`
 
 预期：桥测试通过，Dart 静态检查无错误。
 
-- [ ] **步骤 5：提交**
+- [x] **步骤 5：提交**
 
 提交信息：`feat(mobile): 接入 Rust 接收核心`
 
