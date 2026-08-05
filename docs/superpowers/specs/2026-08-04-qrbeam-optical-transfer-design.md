@@ -4,7 +4,7 @@
 
 - **状态：** 已批准设计
 - **日期：** 2026-08-04
-- **项目目录：** `/Users/blackhook/ai/openclaw/qrbeam/`
+- **项目目录：** `/Users/blackhook/ai/qrbeam/`
 - **工作名称：** QRBeam
 
 本文中的 `MB` 采用十进制定义，即 `1 MB = 1,000,000 B`。`KiB` 采用二进制定义，即 `1 KiB = 1024 B`。首版文件大小硬上限为 `100,000,000 B`。

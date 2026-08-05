@@ -1,0 +1,20 @@
+[workspace]
+members = ["crates/qrbeam-core"]
+resolver = "2"
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.97"
+
+[workspace.dependencies]
+blake3 = "=1.8.5"
+crc32c = "=0.6.8"
+raptorq = "=2.0.1"
+thiserror = "=2.0.19"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = "warn"
+pedantic = "warn"

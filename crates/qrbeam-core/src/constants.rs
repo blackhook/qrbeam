@@ -1,0 +1,8 @@
+pub const PROTOCOL_VERSION: u8 = 1;
+pub const MAX_FILE_BYTES: u64 = 100_000_000;
+pub const SEGMENT_BYTES: usize = 512 * 1024;
+pub const SYMBOL_BYTES: usize = 256;
+pub const FRAME_HEADER_BYTES: usize = 56;
+pub const MAX_QR_FRAME_BYTES: usize = 2_953;
+pub const MAX_FRAME_PAYLOAD_BYTES: usize = MAX_QR_FRAME_BYTES - FRAME_HEADER_BYTES;
+pub const MANIFEST_FRAGMENT_DATA_BYTES: usize = SYMBOL_BYTES - 32;

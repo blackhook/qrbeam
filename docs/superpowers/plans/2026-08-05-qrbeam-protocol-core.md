@@ -57,7 +57,7 @@
 - 创建：`crates/qrbeam-core/src/constants.rs`
 - 修改：`docs/superpowers/specs/2026-08-04-qrbeam-optical-transfer-design.md`
 
-- [ ] **步骤 1：添加 workspace 和锁定工具链**
+- [x] **步骤 1：添加 workspace 和锁定工具链**
 
 `Cargo.toml` 使用以下完整配置：
 
@@ -93,7 +93,7 @@ profile = "minimal"
 components = ["clippy", "rustfmt"]
 ```
 
-- [ ] **步骤 2：创建空协议 crate 和常量**
+- [x] **步骤 2：创建空协议 crate 和常量**
 
 `crates/qrbeam-core/Cargo.toml`：
 
@@ -130,11 +130,11 @@ pub const MANIFEST_FRAGMENT_DATA_BYTES: usize = SYMBOL_BYTES - 32;
 
 `src/lib.rs` 只导出 `constants`，不实现后续行为。
 
-- [ ] **步骤 3：修正文档中的项目目录**
+- [x] **步骤 3：修正文档中的项目目录**
 
 把批准规格中的旧目录 `/Users/blackhook/ai/openclaw/qrbeam/` 改成 `/Users/blackhook/ai/qrbeam/`。
 
-- [ ] **步骤 4：运行格式、检查和空测试基线**
+- [x] **步骤 4：运行格式、检查和空测试基线**
 
 运行：
 
@@ -146,7 +146,7 @@ pub const MANIFEST_FRAGMENT_DATA_BYTES: usize = SYMBOL_BYTES - 32;
 
 预期：三个命令退出码均为 0，测试报告为 0 failed。
 
-- [ ] **步骤 5：Commit**
+- [x] **步骤 5：Commit**
 
 ```bash
 git add Cargo.toml rust-toolchain.toml Cargo.lock crates docs/superpowers/specs/2026-08-04-qrbeam-optical-transfer-design.md
