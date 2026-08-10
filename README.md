@@ -35,14 +35,14 @@ npm run build
 
 每帧 11 个 `256 B` 符号在 60 FPS 下的协议理论上限是 `168.96 kB/s`；扣除每 2 秒一轮清单后的数值取决于清单片数。例如 5 片清单时是 `161.92 kB/s`。手机相机、屏幕、距离和环境光下的实际吞吐尚未完成真机验证，不能把理论值当成实测值。
 
-> 当前 GitHub 仓库是私有仓库，GitHub API 返回该套餐不支持 Pages，因此 Actions 部署工作流已经准备好但不能启用。将仓库改为公开或升级到支持私有 Pages 的套餐后即可启用。
+网页端已发布到 GitHub Pages：[电脑发送页](https://blackhook.github.io/qrbeam/send/) 和 [手机接收页](https://blackhook.github.io/qrbeam/receive/)。首次联网打开并安装 PWA 后，可在没有网络的环境中继续使用。
 
 ## 电脑发送
 
 需要 Rust 1.97 或更高版本。进入项目目录后运行：
 
 ```bash
-cargo run --release -p qrbeam-cli -- send /path/to/file --fps 4
+rustup run 1.97.1 cargo run --release -p qrbeam-cli -- send /path/to/file --fps 4
 ```
 
 发送时快捷键：
@@ -81,9 +81,9 @@ scripts/build-android-alpha.sh
 ## 开发验证
 
 ```bash
-cargo fmt --all -- --check
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
+rustup run 1.97.1 cargo fmt --all -- --check
+rustup run 1.97.1 cargo clippy --workspace --all-targets -- -D warnings
+rustup run 1.97.1 cargo test --workspace
 cd apps/qrbeam_mobile
 flutter test
 flutter analyze
