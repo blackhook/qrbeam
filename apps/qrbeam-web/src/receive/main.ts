@@ -1,0 +1,11 @@
+import { BrowserMultiFormatReader } from "@zxing/browser";
+import "../shared/style.css";
+
+const app=document.querySelector<HTMLDivElement>("#app")!;
+app.innerHTML=`<section class="panel"><p class="eyebrow">QRBEAM / RECEIVE</p><h1>接收文件</h1><button id="camera">打开相机</button><video class="camera" id="video" playsinline muted></video><p class="status" id="status">等待文件信息二维码</p><div class="progress"><i id="bar" style="width:0%"></i></div><div class="blocks" id="blocks"></div><button class="secondary" id="save" disabled>保存文件</button><details><summary>接收说明</summary><p>收到文件信息后会显示区块图。绿色已完成，橙色为部分完成。请保持屏幕清晰稳定。</p></details></section>`;
+const video=document.querySelector<HTMLVideoElement>("#video")!, status=document.querySelector<HTMLParagraphElement>("#status")!, blocks=document.querySelector<HTMLDivElement>("#blocks")!, bar=document.querySelector<HTMLElement>("#bar")!, save=document.querySelector<HTMLButtonElement>("#save")!;
+let name="",size=0,count=0,id="",parts:Uint8Array[]=[];
+const draw=()=>{blocks.innerHTML=Array.from({length:Math.min(count,200)},(_,i)=>`<i class="${parts[i]?"done":""}"></i>`).join("");const done=parts.filter(Boolean).length;bar.style.width=`${count?done/count*100:0}%`;status.textContent=count?`${name} · ${done}/${count} 区块 · ${Math.round(done/count*100)}%`:"等待文件信息二维码";if(count&&done===count){save.disabled=false;status.textContent=`接收完成：${name}`}};
+function ingest(text:string){const fields=text.split("|");if(fields[0]==="QRB1H"){[,id,name,size,count]=[fields[0],fields[1],decodeURIComponent(fields[2]),Number(fields[3]),Number(fields[4])];parts=Array(count);draw()}if(fields[0]==="QRB1D"&&fields[1]===id){const index=Number(fields[2]);if(!parts[index]){const raw=atob(fields[3]);parts[index]=Uint8Array.from(raw,c=>c.charCodeAt(0));draw()}}}
+document.querySelector<HTMLButtonElement>("#camera")!.onclick=async()=>{const reader=new BrowserMultiFormatReader();await reader.decodeFromVideoDevice(undefined,video,result=>{if(result)ingest(result.getText())});status.textContent="相机已开启，正在识别"};
+save.onclick=()=>{const blob=new Blob(parts.map(part => new Uint8Array(part)),{type:"application/octet-stream"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=name||"received.bin";a.click();URL.revokeObjectURL(url)};
