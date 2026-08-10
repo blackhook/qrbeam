@@ -20,7 +20,8 @@ export class WebSender {
   seek_forward(frames: number): bigint;
   start_repair(segment_index: number): void;
   manifest_frames(): any;
-  next_turbo_frame(): Uint8Array;
+  next_profile_frame(profile_id: number): Uint8Array;
+  preview_profile_frame(profile_id: number): Uint8Array;
   constructor(input: any);
   seek_back(frames: number): bigint;
 }
@@ -42,7 +43,8 @@ export interface InitOutput {
   readonly webreceiver_verify_persisted_segments: (a: number, b: any) => [number, number];
   readonly websender_manifest_frames: (a: number) => [number, number, number];
   readonly websender_new: (a: any) => [number, number, number];
-  readonly websender_next_turbo_frame: (a: number) => [number, number, number, number];
+  readonly websender_next_profile_frame: (a: number, b: number) => [number, number, number, number];
+  readonly websender_preview_profile_frame: (a: number, b: number) => [number, number, number, number];
   readonly websender_seek_back: (a: number, b: number) => bigint;
   readonly websender_seek_forward: (a: number, b: number) => bigint;
   readonly websender_start_repair: (a: number, b: number) => [number, number];

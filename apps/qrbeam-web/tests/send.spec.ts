@@ -9,7 +9,34 @@ test("发送页初始化 WASM 并渲染二进制 QRBeam 帧", async ({ page }) =
     buffer: Buffer.from([1, 2, 3, 4]),
   });
   await expect(page.locator("#status")).toContainText("发送文件信息", { timeout: 8_000 });
-  await expect(page.locator("#qr")).toHaveJSProperty("width", 1080);
+  const canvasWidth = await page.locator("#qr").evaluate(canvas => (canvas as HTMLCanvasElement).width);
+  expect(canvasWidth).toBeGreaterThan(0);
+  expect(canvasWidth).not.toBe(1080);
+});
+
+test("可扫窄窗口自动选择低档位并显示模块物理像素", async ({ page }) => {
+  await page.setViewportSize({ width: 540, height: 720 });
+  await page.goto("send/");
+  await page.locator("#file").setInputFiles({
+    name: "scan-safe.bin",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.alloc(1024, 7),
+  });
+  await expect(page.locator("#qr-player")).toHaveClass(/active/, { timeout: 8_000 });
+  await expect(page.locator("#profile-status")).toContainText("模块", { timeout: 8_000 });
+  await expect(page.locator("#profile-status")).toContainText("符号/帧");
+});
+
+test("过窄窗口拒绝开始并提示全屏", async ({ page }) => {
+  await page.setViewportSize({ width: 480, height: 720 });
+  await page.goto("send/");
+  await page.locator("#file").setInputFiles({
+    name: "too-small.bin",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.alloc(1024, 7),
+  });
+  await expect(page.locator("#profile-status")).toContainText("至少 6 px", { timeout: 8_000 });
+  await expect(page.locator("#qr-player")).not.toHaveClass(/active/);
 });
 
 test("独立发送页不依赖开发服务器", async ({ page }) => {
