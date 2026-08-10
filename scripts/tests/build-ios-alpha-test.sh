@@ -60,6 +60,7 @@ run_build() {
     QRBEAM_MOBILE_DIR="$fake_mobile" \
     QRBEAM_DIST_DIR="$dist_dir" \
     QRBEAM_TEST_CALLS="$test_root/calls.log" \
+    QRBEAM_CARGO="$fake_bin/cargo" \
     "$@" \
     "$build_script"
 }
