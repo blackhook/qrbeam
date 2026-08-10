@@ -320,6 +320,14 @@ export class WebSender {
         wasm.__wbg_websender_free(ptr, 0);
     }
     /**
+     * @param {number} frames
+     * @returns {bigint}
+     */
+    seek_forward(frames) {
+        const ret = wasm.websender_seek_forward(this.__wbg_ptr, frames);
+        return BigInt.asUintN(64, ret);
+    }
+    /**
      * @returns {any}
      */
     manifest_frames() {
@@ -352,6 +360,14 @@ export class WebSender {
         this.__wbg_ptr = ret[0] >>> 0;
         WebSenderFinalization.register(this, this.__wbg_ptr, this);
         return this;
+    }
+    /**
+     * @param {number} frames
+     * @returns {bigint}
+     */
+    seek_back(frames) {
+        const ret = wasm.websender_seek_back(this.__wbg_ptr, frames);
+        return BigInt.asUintN(64, ret);
     }
 }
 

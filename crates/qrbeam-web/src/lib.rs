@@ -77,6 +77,16 @@ impl WebSender {
                     .ok_or_else(|| JsValue::from_str("missing frame"))
             })
     }
+
+    #[must_use]
+    pub fn seek_back(&mut self, frames: u32) -> u64 {
+        self.inner.timeline_mut().seek_back(frames as usize)
+    }
+
+    #[must_use]
+    pub fn seek_forward(&mut self, frames: u32) -> u64 {
+        self.inner.timeline_mut().seek_forward(frames as usize)
+    }
 }
 
 #[wasm_bindgen]

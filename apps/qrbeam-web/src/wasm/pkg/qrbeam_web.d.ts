@@ -15,9 +15,11 @@ export class WebReceiver {
 }
 export class WebSender {
   free(): void;
+  seek_forward(frames: number): bigint;
   manifest_frames(): any;
   next_turbo_frame(): Uint8Array;
   constructor(input: any);
+  seek_back(frames: number): bigint;
 }
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -37,6 +39,8 @@ export interface InitOutput {
   readonly websender_manifest_frames: (a: number) => [number, number, number];
   readonly websender_new: (a: any) => [number, number, number];
   readonly websender_next_turbo_frame: (a: number) => [number, number, number, number];
+  readonly websender_seek_back: (a: number, b: number) => bigint;
+  readonly websender_seek_forward: (a: number, b: number) => bigint;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;
