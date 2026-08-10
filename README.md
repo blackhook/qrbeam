@@ -48,7 +48,7 @@ cargo run --release -p qrbeam-cli -- send /path/to/file --fps 4
 - `Space`：暂停或继续
 - `J`：回退 100 帧，便于补帧
 - `L`：前进 100 帧
-- `Home`：重新发送 3 秒文件清单
+- `Home`：立即重发一整轮文件清单，不回退数据时间轴
 - `Q` 或 `Esc`：停止
 
 建议先用 `--fps 2` 测试，再逐步提高到 4–8 FPS。手机显示“接收完成”后，在电脑按 `Q` 停止。
