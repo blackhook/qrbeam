@@ -9,6 +9,7 @@ export class WebReceiver {
   free(): void;
   snapshot_json(): string;
   acknowledge_segment(index: number): void;
+  restore_completed_segment(index: number): void;
   constructor(manifest: Uint8Array);
   ingest(frame: Uint8Array): any;
 }
@@ -31,6 +32,7 @@ export interface InitOutput {
   readonly webreceiver_acknowledge_segment: (a: number, b: number) => [number, number];
   readonly webreceiver_ingest: (a: number, b: number, c: number) => [number, number, number];
   readonly webreceiver_new: (a: number, b: number) => [number, number, number];
+  readonly webreceiver_restore_completed_segment: (a: number, b: number) => [number, number];
   readonly webreceiver_snapshot_json: (a: number) => [number, number];
   readonly websender_manifest_frames: (a: number) => [number, number, number];
   readonly websender_new: (a: any) => [number, number, number];

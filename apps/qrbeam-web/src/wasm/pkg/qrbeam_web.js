@@ -265,6 +265,15 @@ export class WebReceiver {
         }
     }
     /**
+     * @param {number} index
+     */
+    restore_completed_segment(index) {
+        const ret = wasm.webreceiver_restore_completed_segment(this.__wbg_ptr, index);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
+    }
+    /**
      * @param {Uint8Array} manifest
      */
     constructor(manifest) {

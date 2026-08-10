@@ -9,6 +9,7 @@ export const webmanifestassembler_push: (a: number, b: number, c: number) => [nu
 export const webreceiver_acknowledge_segment: (a: number, b: number) => [number, number];
 export const webreceiver_ingest: (a: number, b: number, c: number) => [number, number, number];
 export const webreceiver_new: (a: number, b: number) => [number, number, number];
+export const webreceiver_restore_completed_segment: (a: number, b: number) => [number, number];
 export const webreceiver_snapshot_json: (a: number) => [number, number];
 export const websender_manifest_frames: (a: number) => [number, number, number];
 export const websender_new: (a: any) => [number, number, number];

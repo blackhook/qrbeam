@@ -163,6 +163,12 @@ impl WebReceiver {
         self.inner.acknowledge_segment(index).map_err(js_error)
     }
 
+    pub fn restore_completed_segment(&mut self, index: u32) -> Result<(), JsValue> {
+        self.inner
+            .restore_completed_segment(index)
+            .map_err(js_error)
+    }
+
     pub fn snapshot_json(&self) -> String {
         format!("{:?}", self.inner.snapshot())
     }
