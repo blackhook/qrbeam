@@ -171,6 +171,11 @@ stop.onclick = () => {
   sender = undefined;
   selection = undefined;
   player.classList.remove("active");
+  canvas.width = 0;
+  canvas.height = 0;
+  canvas.style.width = "0px";
+  canvas.style.height = "0px";
+  filename.textContent = "等待文件";
   status.textContent = "已停止";
   profileStatus.textContent = "模块尺寸将在开始前测量";
 };

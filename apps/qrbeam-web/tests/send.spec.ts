@@ -39,6 +39,20 @@ test("过窄窗口拒绝开始并提示全屏", async ({ page }) => {
   await expect(page.locator("#qr-player")).not.toHaveClass(/active/);
 });
 
+test("停止发送时清除上一会话的二维码画布", async ({ page }) => {
+  await page.goto("send/");
+  await page.locator("#file").setInputFiles({
+    name: "clear-frame.bin",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.alloc(1024, 7),
+  });
+  await expect(page.locator("#qr-player")).toHaveClass(/active/, { timeout: 8_000 });
+  await page.locator("#stop").click();
+  const canvasWidth = await page.locator("#qr").evaluate(canvas => (canvas as HTMLCanvasElement).width);
+  expect(canvasWidth).toBe(0);
+  await expect(page.locator("#filename")).toHaveText("等待文件");
+});
+
 test("独立发送页不依赖开发服务器", async ({ page }) => {
   await page.goto(pathToFileURL(`${process.cwd()}/qrbeam-send.html`).href);
   await page.locator("#file").setInputFiles({
