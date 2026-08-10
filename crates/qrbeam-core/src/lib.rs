@@ -3,6 +3,7 @@ pub mod error;
 pub mod frame;
 pub mod manifest;
 pub mod manifest_carousel;
+pub mod persistent_receiver;
 pub mod receiver;
 pub mod segment;
 pub mod session;
