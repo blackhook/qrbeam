@@ -60,13 +60,13 @@ async function draw(frame: Uint8Array, ecc: "L" | "M") {
   const physicalSide = Math.floor(side * window.devicePixelRatio);
   canvas.width = physicalSide;
   canvas.height = physicalSide;
-  canvas.style.width = `${side}px`;
-  canvas.style.height = `${side}px`;
   await QRCode.toCanvas(canvas, [{ data: frame, mode: "byte" }], {
     errorCorrectionLevel: ecc,
     margin: 4,
     width: physicalSide,
   });
+  canvas.style.width = `${side}px`;
+  canvas.style.height = `${side}px`;
 }
 
 async function configurePlayback() {
