@@ -1,5 +1,6 @@
 import { BrowserMultiFormatReader } from "@zxing/browser";
 import init, { WebManifestAssembler, WebReceiver } from "../wasm/pkg/qrbeam_web";
+import { blockClass } from "./block_state";
 import "../shared/style.css";
 
 type ReceiverEvent = { kind: string; index?: number; bytes?: number[] };
@@ -20,6 +21,7 @@ let filename = "received.bin";
 let originalLength = 0;
 let segmentCount = 0;
 let done = new Set<number>();
+let partial = new Set<number>();
 let verified = false;
 
 const db = await new Promise<IDBDatabase>((resolve, reject) => {
@@ -79,7 +81,7 @@ const clearPartial = (index: number) => new Promise<void>((resolve, reject) => {
 
 function redraw() {
   const visible = Math.min(segmentCount, 200);
-  blocks.innerHTML = Array.from({ length: visible }, (_, index) => `<i class="${done.has(index) ? "done" : ""}"></i>`).join("");
+  blocks.innerHTML = Array.from({ length: visible }, (_, index) => `<i class="${blockClass(index, done, partial)}"></i>`).join("");
   const percent = segmentCount ? (done.size / segmentCount) * 100 : 0;
   bar.style.width = `${percent}%`;
   status.textContent = segmentCount ? `${filename} · ${done.size}/${segmentCount} 区块 · ${Math.round(percent)}%` : "等待文件信息二维码";
@@ -133,11 +135,16 @@ async function ingest(bytes: Uint8Array, replaying = false) {
   if (!receiver) return;
   const segment = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getUint32(40, true);
   const event = receiver.ingest(bytes) as ReceiverEvent;
-  if (event.kind === "accepted" && !replaying && !done.has(segment)) await appendPartial(segment, bytes);
+  if (event.kind === "accepted" && !done.has(segment)) {
+    partial.add(segment);
+    if (!replaying) await appendPartial(segment, bytes);
+    redraw();
+  }
   if (event.kind === "segment-ready" && event.index !== undefined && event.bytes) {
     await writeSegment(event.index, new Uint8Array(event.bytes));
     receiver.acknowledge_segment(event.index);
     done.add(event.index);
+    partial.delete(event.index);
     await clearPartial(event.index);
     await writeMeta("done", Array.from(done));
     redraw();
@@ -153,7 +160,11 @@ if (savedManifest) {
   done = new Set(savedDone ?? []);
   await startSession(new Uint8Array(savedManifest));
   for (let index = 0; index < segmentCount; index += 1) {
-    if (!done.has(index)) for (const frame of await readPartial(index)) await ingest(new Uint8Array(frame), true);
+    if (!done.has(index)) {
+      const frames = await readPartial(index);
+      if (frames.length) partial.add(index);
+      for (const frame of frames) await ingest(new Uint8Array(frame), true);
+    }
   }
   if (done.size === segmentCount) await verifyCompleteFile();
   else status.textContent = `已恢复 ${filename}，继续扫描补齐区块`;
