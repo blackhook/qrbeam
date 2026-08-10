@@ -7,7 +7,7 @@ import "../shared/style.css";
 type ReceiverEvent = { kind: string; index?: number; bytes?: number[] };
 
 const app = document.querySelector<HTMLDivElement>("#app")!;
-app.innerHTML = `<section class="panel"><p class="eyebrow">QRBEAM / RECEIVE</p><h1>接收文件</h1><button id="camera">打开相机</button><video class="camera" id="video" playsinline muted></video><p class="status" id="status">等待文件信息二维码</p><div class="progress"><i id="bar" style="width:0%"></i></div><div class="blocks" id="blocks"></div><button class="secondary" id="save" disabled>保存文件</button><details><summary>接收说明</summary><p>绿色：已安全写入本机存储。橙色：正在解码。全部区块和完整文件哈希都验证通过后，才能保存原文件。</p></details></section>`;
+app.innerHTML = `<section class="panel"><p class="eyebrow">QRBEAM / RECEIVE · <span id="receiver-build">A3.1</span></p><h1>接收文件</h1><button id="camera">打开相机</button><video class="camera" id="video" playsinline muted></video><p class="status" id="status">等待文件信息二维码</p><div class="progress"><i id="bar" style="width:0%"></i></div><div class="blocks" id="blocks"></div><button class="secondary" id="save" disabled>保存文件</button><details><summary>接收说明</summary><p>绿色：已安全写入本机存储。橙色：正在解码。全部区块和完整文件哈希都验证通过后，才能保存原文件。</p></details></section>`;
 
 const video = document.querySelector<HTMLVideoElement>("#video")!;
 const status = document.querySelector<HTMLParagraphElement>("#status")!;
@@ -173,13 +173,28 @@ if (savedManifest) {
 
 document.querySelector<HTMLButtonElement>("#camera")!.onclick = async () => {
   const reader = createQrReader();
+  let located = 0;
+  let qrbeamFrames = 0;
+  status.textContent = "相机已开启，正在定位二维码";
   await reader.decodeFromConstraints(receiverVideoConstraints, video, result => {
     if (!result) return;
+    located += 1;
     const raw = payloadFromResult(result);
-    if (!raw) return;
+    if (!raw) {
+      if (!receiver) status.textContent = `已定位 ${located} 个二维码；未读到二进制载荷`;
+      return;
+    }
+    if (raw[0] !== 0x51 || raw[1] !== 0x52 || raw[2] !== 0x42 || raw[3] !== 0x4d) {
+      if (!receiver) status.textContent = `已定位 ${located} 个二维码；这不是 QRBeam 帧`;
+      return;
+    }
+    qrbeamFrames += 1;
+    if (!receiver) {
+      const kind = raw[5] === 1 ? "文件信息帧" : "数据帧（请在电脑按 Home 重发文件信息）";
+      status.textContent = `已识别 ${qrbeamFrames} 个 QRBeam ${kind}`;
+    }
     void ingest(raw).catch(error => { status.textContent = `接收错误：${String(error)}`; });
   });
-  status.textContent = "相机已开启，正在识别 QRBeam 帧";
 };
 
 save.onclick = async () => {
