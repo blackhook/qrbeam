@@ -149,7 +149,7 @@ fn send(path: &Path, fps: u8) -> Result<(), Box<dyn Error>> {
                 KeyCode::Char('l' | 'L') => {
                     player.seek_forward(100);
                 }
-                KeyCode::Home => player.home()?,
+                KeyCode::Home => player.home(),
                 KeyCode::Char('q' | 'Q') | KeyCode::Esc => break,
                 _ => {}
             }

@@ -1,10 +1,12 @@
 use qrbeam_core::error::ProtocolError;
 use qrbeam_core::manifest::EccLevel;
+use qrbeam_core::manifest_carousel::ManifestCarousel;
 use qrbeam_core::session::SendSession;
 use qrbeam_core::timeline::ChannelRequest;
 use thiserror::Error;
 
 const MANIFEST_SECONDS: u32 = 3;
+const MANIFEST_INTERVAL_SECONDS: u32 = 2;
 const STABLE_PROFILE_ID: u8 = 0;
 const STABLE_CHANNEL_ID: u8 = 0;
 
@@ -33,9 +35,12 @@ pub enum PlayerError {
 #[derive(Clone, Debug)]
 pub struct Player {
     sender: SendSession,
-    manifest_frames: Vec<Vec<u8>>,
+    manifest_carousel: ManifestCarousel,
     manifest_ticks: u32,
     manifest_ticks_emitted: u32,
+    manifest_round_remaining: usize,
+    ticks_since_manifest_round: u32,
+    manifest_interval_ticks: u32,
     paused: bool,
     last_frame: Option<DisplayFrame>,
 }
@@ -72,11 +77,15 @@ impl Player {
                     .encode()
             })
             .collect::<Result<Vec<_>, ProtocolError>>()?;
+        let manifest_carousel = ManifestCarousel::new(manifest_frames)?;
         Ok(Self {
             sender,
-            manifest_frames,
+            manifest_carousel,
             manifest_ticks: u32::from(fps) * MANIFEST_SECONDS,
             manifest_ticks_emitted: 0,
+            manifest_round_remaining: 0,
+            ticks_since_manifest_round: 0,
+            manifest_interval_ticks: u32::from(fps) * MANIFEST_INTERVAL_SECONDS,
             paused: false,
             last_frame: None,
         })
@@ -95,11 +104,8 @@ impl Player {
             return Ok(frame);
         }
         let frame = if self.manifest_ticks_emitted < self.manifest_ticks {
-            let index = usize::try_from(self.manifest_ticks_emitted)
-                .map_err(|_| ProtocolError::InvalidTimeline("manifest index overflow"))?
-                % self.manifest_frames.len();
             let frame = DisplayFrame {
-                bytes: self.manifest_frames[index].clone(),
+                bytes: self.manifest_carousel.next_frame(),
                 phase: PlaybackPhase::Manifest,
                 logical_index: u64::from(self.manifest_ticks_emitted),
                 ecc: EccLevel::M,
@@ -107,20 +113,37 @@ impl Player {
             self.manifest_ticks_emitted += 1;
             frame
         } else {
-            let logical_index = self.sender.timeline_mut().current_frame();
-            let bytes = self
-                .sender
-                .next_frames(&[ChannelRequest {
-                    channel_id: STABLE_CHANNEL_ID,
-                    profile_id: STABLE_PROFILE_ID,
-                    symbols_per_frame: 1,
-                }])?
-                .remove(0);
-            DisplayFrame {
-                bytes,
-                phase: PlaybackPhase::Data,
-                logical_index,
-                ecc: EccLevel::M,
+            if self.manifest_round_remaining == 0
+                && self.ticks_since_manifest_round >= self.manifest_interval_ticks
+            {
+                self.manifest_round_remaining = self.manifest_carousel.round_len();
+                self.ticks_since_manifest_round = 0;
+            }
+            if self.manifest_round_remaining > 0 {
+                self.manifest_round_remaining -= 1;
+                DisplayFrame {
+                    bytes: self.manifest_carousel.next_frame(),
+                    phase: PlaybackPhase::Manifest,
+                    logical_index: self.sender.timeline_mut().current_frame(),
+                    ecc: EccLevel::M,
+                }
+            } else {
+                let logical_index = self.sender.timeline_mut().current_frame();
+                let bytes = self
+                    .sender
+                    .next_frames(&[ChannelRequest {
+                        channel_id: STABLE_CHANNEL_ID,
+                        profile_id: STABLE_PROFILE_ID,
+                        symbols_per_frame: 1,
+                    }])?
+                    .remove(0);
+                self.ticks_since_manifest_round += 1;
+                DisplayFrame {
+                    bytes,
+                    phase: PlaybackPhase::Data,
+                    logical_index,
+                    ecc: EccLevel::M,
+                }
             }
         };
         self.last_frame = Some(frame.clone());
@@ -146,17 +169,11 @@ impl Player {
         self.sender.timeline_mut().seek_forward(frames)
     }
 
-    /// Restarts the manifest stage and rewinds the existing data timeline.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`PlayerError`] only if the timeline rejects frame zero.
-    pub fn home(&mut self) -> Result<(), PlayerError> {
-        self.manifest_ticks_emitted = 0;
+    /// Requests one full manifest round without moving the data timeline.
+    pub fn home(&mut self) {
+        self.manifest_round_remaining = self.manifest_carousel.round_len();
+        self.ticks_since_manifest_round = 0;
         self.last_frame = None;
-        self.paused = false;
-        self.sender.timeline_mut().seek_frame(0)?;
-        Ok(())
     }
 
     #[must_use]

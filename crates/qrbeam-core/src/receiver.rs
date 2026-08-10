@@ -35,6 +35,7 @@ impl Default for ReceiverSnapshot {
 pub enum ControllerUpdate {
     ManifestProgress,
     ManifestReady,
+    ManifestRefreshed,
     IgnoredDuplicate,
     Accepted,
     BlockComplete(u32),
@@ -46,6 +47,9 @@ pub struct ReceiverController {
     assembler: ManifestAssembler,
     session: Option<ReceiveSession>,
     snapshot: ReceiverSnapshot,
+    active_manifest_hash: Option<[u8; 32]>,
+    active_session_id: Option<[u8; 16]>,
+    active_file_id: Option<u32>,
 }
 
 impl ReceiverController {
@@ -82,11 +86,25 @@ impl ReceiverController {
     }
 
     fn ingest_manifest(&mut self, frame: &Frame) -> Result<ControllerUpdate, ProtocolError> {
+        if frame.payload.len() >= 32 {
+            let mut manifest_hash = [0_u8; 32];
+            manifest_hash.copy_from_slice(&frame.payload[..32]);
+            if self.active_manifest_hash == Some(manifest_hash)
+                && self.active_session_id == Some(frame.header.session_id)
+                && self.active_file_id == Some(frame.header.file_id)
+            {
+                self.snapshot.last_frame_index = Some(frame.header.global_frame_index);
+                return Ok(ControllerUpdate::ManifestRefreshed);
+            }
+        }
         let Some(manifest) = self.assembler.push(frame)? else {
             return Ok(ControllerUpdate::ManifestProgress);
         };
         let filename = manifest.filename.clone();
         let total_bytes = manifest.original_length;
+        let manifest_hash = *blake3::hash(&manifest.encode()?).as_bytes();
+        let session_id = manifest.session_id;
+        let file_id = manifest.file_id;
         let session = ReceiveSession::new(manifest)?;
         let blocks = session.block_states();
         self.session = Some(session);
@@ -97,6 +115,9 @@ impl ReceiverController {
             blocks,
             last_frame_index: Some(frame.header.global_frame_index),
         };
+        self.active_manifest_hash = Some(manifest_hash);
+        self.active_session_id = Some(session_id);
+        self.active_file_id = Some(file_id);
         Ok(ControllerUpdate::ManifestReady)
     }
 

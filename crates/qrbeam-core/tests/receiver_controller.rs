@@ -161,3 +161,30 @@ fn segment_crc_failure_marks_the_block_for_backfill() {
         }]
     );
 }
+
+#[test]
+fn receiving_the_same_manifest_keeps_completed_blocks() {
+    let data = sample_data(1_024);
+    let mut sender = SendSession::new("same.bin", "", &data, [0x45; 16], 100).unwrap();
+    let manifest = manifest_frames(&sender);
+    let mut receiver = ReceiverController::new();
+    for frame in &manifest {
+        receiver.ingest(frame).unwrap();
+    }
+    for _ in 0..8 {
+        let frame = sender.next_frames(&[CHANNEL]).unwrap().remove(0);
+        let _ = receiver.ingest(&frame).unwrap();
+    }
+
+    for frame in &manifest {
+        assert_eq!(
+            receiver.ingest(frame),
+            Ok(ControllerUpdate::ManifestRefreshed)
+        );
+    }
+
+    assert!(matches!(
+        receiver.snapshot().blocks.as_slice(),
+        [BlockState::Complete]
+    ));
+}

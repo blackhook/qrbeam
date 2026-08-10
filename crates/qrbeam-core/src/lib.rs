@@ -2,6 +2,7 @@ pub mod constants;
 pub mod error;
 pub mod frame;
 pub mod manifest;
+pub mod manifest_carousel;
 pub mod receiver;
 pub mod segment;
 pub mod session;
