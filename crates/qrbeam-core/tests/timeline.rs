@@ -163,3 +163,17 @@ fn duplicate_channel_ids_are_rejected() {
         Err(ProtocolError::InvalidTimeline("duplicate channel ID"))
     );
 }
+
+#[test]
+fn high_profile_allows_eleven_symbols_in_one_frame() {
+    let mut timeline = Timeline::new([8; 16], 10, vec![11]).unwrap();
+    let channel = ChannelRequest {
+        channel_id: 0,
+        profile_id: 3,
+        symbols_per_frame: 11,
+    };
+
+    let plans = timeline.next_tick(&[channel]).unwrap();
+
+    assert_eq!(plans[0].symbol_count, 11);
+}

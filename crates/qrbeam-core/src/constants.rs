@@ -8,3 +8,5 @@ pub const FRAME_HEADER_BYTES: usize = 56;
 pub const MAX_QR_FRAME_BYTES: usize = 2_953;
 pub const MAX_FRAME_PAYLOAD_BYTES: usize = MAX_QR_FRAME_BYTES - FRAME_HEADER_BYTES;
 pub const MANIFEST_FRAGMENT_DATA_BYTES: usize = SYMBOL_BYTES - 32;
+pub const MAX_SYMBOLS_PER_FRAME: u16 = 11;
+pub const MAX_MANIFEST_TEXT_BYTES: usize = 255;

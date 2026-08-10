@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 
+use crate::constants::MAX_SYMBOLS_PER_FRAME;
 use crate::error::ProtocolError;
 
-const MAX_SYMBOLS_PER_FRAME: u16 = 10;
 const MAX_RAPTORQ_ESI: u32 = 1 << 24;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

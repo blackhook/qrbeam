@@ -1,5 +1,6 @@
 use crate::constants::{
-    MANIFEST_FRAGMENT_DATA_BYTES, MAX_FILE_BYTES, SEGMENT_BYTES_U32, SYMBOL_BYTES, SYMBOL_BYTES_U16,
+    MANIFEST_FRAGMENT_DATA_BYTES, MAX_FILE_BYTES, MAX_MANIFEST_TEXT_BYTES, MAX_SYMBOLS_PER_FRAME,
+    SEGMENT_BYTES_U32, SYMBOL_BYTES, SYMBOL_BYTES_U16,
 };
 use crate::error::ProtocolError;
 use crate::frame::{Frame, FrameHeader, FrameType};
@@ -8,7 +9,6 @@ const MANIFEST_MAGIC: &[u8; 4] = b"QRMF";
 const MANIFEST_FIXED_BYTES: usize = 112;
 const MANIFEST_CRC_BYTES: usize = 4;
 const PROFILE_BYTES: usize = 8;
-const MAX_TEXT_BYTES: usize = 4_096;
 const MAX_PROFILES: usize = 16;
 const MAX_MANIFEST_FRAGMENTS: u32 = 512;
 
@@ -90,7 +90,7 @@ impl Profile {
             },
             Self {
                 id: 3,
-                symbols_per_frame: 10,
+                symbols_per_frame: 11,
                 ecc: EccLevel::L,
                 target_fps: 60,
                 min_module_pixels: 4,
@@ -327,10 +327,10 @@ impl Manifest {
         if self.symbol_size != SYMBOL_BYTES_U16 {
             return Err(ProtocolError::InvalidManifest("unsupported symbol size"));
         }
-        if self.filename.is_empty() || self.filename.len() > MAX_TEXT_BYTES {
+        if self.filename.is_empty() || self.filename.len() > MAX_MANIFEST_TEXT_BYTES {
             return Err(ProtocolError::InvalidManifest("invalid filename length"));
         }
-        if self.mime_type.len() > MAX_TEXT_BYTES {
+        if self.mime_type.len() > MAX_MANIFEST_TEXT_BYTES {
             return Err(ProtocolError::InvalidManifest("invalid MIME type length"));
         }
         if self.profiles.is_empty() || self.profiles.len() > MAX_PROFILES {
@@ -557,7 +557,9 @@ fn decode_profile(bytes: &[u8]) -> Result<Profile, ProtocolError> {
 }
 
 fn validate_profile(profile: Profile) -> Result<(), ProtocolError> {
-    if profile.symbols_per_frame == 0 || profile.symbols_per_frame > 10 {
+    if profile.symbols_per_frame == 0
+        || u16::from(profile.symbols_per_frame) > MAX_SYMBOLS_PER_FRAME
+    {
         return Err(ProtocolError::InvalidManifest(
             "profile symbol count is outside protocol bounds",
         ));

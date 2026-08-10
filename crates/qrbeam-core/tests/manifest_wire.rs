@@ -41,6 +41,22 @@ fn manifest_round_trips_with_all_profiles_and_segment_checksums() {
 }
 
 #[test]
+fn high_profile_accepts_eleven_symbols_per_frame() {
+    let manifest = sample_manifest();
+
+    assert_eq!(manifest.profiles[3].symbols_per_frame, 11);
+    manifest.encode().unwrap();
+}
+
+#[test]
+fn manifest_rejects_a_filename_longer_than_255_utf8_bytes() {
+    let mut manifest = sample_manifest();
+    manifest.filename = "a".repeat(256);
+
+    assert!(manifest.encode().is_err());
+}
+
+#[test]
 fn large_manifest_fragments_reassemble_out_of_order() {
     let mut manifest = sample_manifest();
     manifest.original_length = MAX_FILE_BYTES;
@@ -187,10 +203,10 @@ fn manifest_encoding_matches_independent_golden_bytes() {
         "0001010806280000",
         "0105001806280000",
         "0208001e04280000",
-        "030a003c04280000",
+        "030b003c04280000",
         "78563412",
         "efcdab90",
-        "6f2ca8c9",
+        "6ed126ae",
     ));
 
     assert_eq!(sample_manifest().encode().unwrap(), expected);
