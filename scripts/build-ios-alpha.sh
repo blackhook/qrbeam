@@ -6,6 +6,28 @@ repo_root=$(CDPATH= cd -- "$script_dir/.." && pwd)
 mobile_dir=${QRBEAM_MOBILE_DIR:-"$repo_root/apps/qrbeam_mobile"}
 dist_dir=${QRBEAM_DIST_DIR:-"$repo_root/dist"}
 max_app_bytes=$((100 * 1024 * 1024))
+qrbeam_cargo=${QRBEAM_CARGO:-}
+qrbeam_rustc=${QRBEAM_RUSTC:-}
+qrbeam_rustdoc=${QRBEAM_RUSTDOC:-}
+
+if [[ -z "$qrbeam_cargo" ]] && command -v rustup >/dev/null 2>&1; then
+  qrbeam_cargo=$(rustup which cargo)
+fi
+if [[ -z "$qrbeam_rustc" ]] && command -v rustup >/dev/null 2>&1; then
+  qrbeam_rustc=$(rustup which rustc)
+fi
+if [[ -z "$qrbeam_rustdoc" ]] && command -v rustup >/dev/null 2>&1; then
+  qrbeam_rustdoc=$(rustup which rustdoc)
+fi
+if [[ -z "$qrbeam_cargo" ]]; then
+  qrbeam_cargo=$(command -v cargo)
+fi
+if [[ -z "$qrbeam_rustc" ]]; then
+  qrbeam_rustc=$(command -v rustc)
+fi
+if [[ -z "$qrbeam_rustdoc" ]]; then
+  qrbeam_rustdoc=$(command -v rustdoc)
+fi
 
 count_signing_identities() {
   if [[ -n "${QRBEAM_SIGNING_IDENTITIES:-}" ]]; then
@@ -67,9 +89,9 @@ check_no_service_url() {
 
 (
   cd "$repo_root"
-  cargo fmt --all -- --check
-  cargo clippy --workspace --all-targets -- -D warnings
-  cargo test --workspace
+  RUSTC="$qrbeam_rustc" RUSTDOC="$qrbeam_rustdoc" "$qrbeam_cargo" fmt --all -- --check
+  RUSTC="$qrbeam_rustc" RUSTDOC="$qrbeam_rustdoc" "$qrbeam_cargo" clippy --workspace --all-targets -- -D warnings
+  RUSTC="$qrbeam_rustc" RUSTDOC="$qrbeam_rustdoc" "$qrbeam_cargo" test --workspace
 )
 
 (
