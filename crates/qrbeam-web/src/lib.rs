@@ -116,9 +116,12 @@ fn next_frame_for_profile(
         profile_id,
         symbols_per_frame: u16::from(profile.symbols_per_frame),
     };
-    sender.next_frames(&[channel])?.pop().ok_or(
-        qrbeam_core::error::ProtocolError::InvalidTimeline("missing generated frame"),
-    )
+    sender
+        .next_frames(&[channel])?
+        .pop()
+        .ok_or(qrbeam_core::error::ProtocolError::InvalidTimeline(
+            "missing generated frame",
+        ))
 }
 
 #[wasm_bindgen]
