@@ -274,6 +274,15 @@ export class WebReceiver {
         }
     }
     /**
+     * @param {any} segments
+     */
+    verify_persisted_segments(segments) {
+        const ret = wasm.webreceiver_verify_persisted_segments(this.__wbg_ptr, segments);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
+    }
+    /**
      * @param {Uint8Array} manifest
      */
     constructor(manifest) {

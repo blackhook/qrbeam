@@ -11,6 +11,7 @@ export const webreceiver_ingest: (a: number, b: number, c: number) => [number, n
 export const webreceiver_new: (a: number, b: number) => [number, number, number];
 export const webreceiver_restore_completed_segment: (a: number, b: number) => [number, number];
 export const webreceiver_snapshot_json: (a: number) => [number, number];
+export const webreceiver_verify_persisted_segments: (a: number, b: any) => [number, number];
 export const websender_manifest_frames: (a: number) => [number, number, number];
 export const websender_new: (a: any) => [number, number, number];
 export const websender_next_turbo_frame: (a: number) => [number, number, number, number];

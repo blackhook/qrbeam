@@ -232,6 +232,69 @@ impl PersistentReceiver {
         Ok(())
     }
 
+    /// Verifies the complete, durably stored file without holding a second
+    /// full copy in memory. Call this immediately before exposing a download.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ProtocolError`] when a segment is missing, has the wrong
+    /// length or CRC32C, or the assembled file does not match the manifest
+    /// length and BLAKE3 digest.
+    pub fn verify_persisted_segments(&self, segments: &[Vec<u8>]) -> Result<(), ProtocolError> {
+        if segments.len() != self.manifest.segment_crc32c.len()
+            || self.completed.iter().any(|complete| !complete)
+        {
+            return Err(ProtocolError::FileLengthMismatch {
+                expected: self.manifest.container_length,
+                actual: 0,
+            });
+        }
+
+        let mut length = 0_u64;
+        let mut hasher = blake3::Hasher::new();
+        for (index, segment) in segments.iter().enumerate() {
+            let expected_length = segment_length(&self.manifest, index)?;
+            if segment.len() != expected_length {
+                return Err(ProtocolError::SegmentLengthOutOfRange {
+                    actual: segment.len(),
+                    minimum: expected_length,
+                    maximum: expected_length,
+                });
+            }
+            let actual_crc = crc32c::crc32c(segment);
+            let expected_crc = self.manifest.segment_crc32c[index];
+            if actual_crc != expected_crc {
+                return Err(ProtocolError::SegmentCrcMismatch {
+                    segment_index: u32::try_from(index)
+                        .map_err(|_| ProtocolError::InvalidManifest("too many segments"))?,
+                    expected: expected_crc,
+                    actual: actual_crc,
+                });
+            }
+            length = length
+                .checked_add(u64::try_from(segment.len()).unwrap_or(u64::MAX))
+                .ok_or(ProtocolError::FileLengthMismatch {
+                    expected: self.manifest.container_length,
+                    actual: u64::MAX,
+                })?;
+            hasher.update(segment);
+        }
+        if length != self.manifest.container_length {
+            return Err(ProtocolError::FileLengthMismatch {
+                expected: self.manifest.container_length,
+                actual: length,
+            });
+        }
+        let actual_hash = *hasher.finalize().as_bytes();
+        if actual_hash != self.manifest.file_hash {
+            return Err(ProtocolError::FileHashMismatch {
+                expected: self.manifest.file_hash,
+                actual: actual_hash,
+            });
+        }
+        Ok(())
+    }
+
     #[must_use]
     pub const fn snapshot(&self) -> &ReceiverSnapshot {
         &self.snapshot

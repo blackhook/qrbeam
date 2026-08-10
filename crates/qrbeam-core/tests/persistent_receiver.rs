@@ -1,3 +1,4 @@
+use qrbeam_core::error::ProtocolError;
 use qrbeam_core::persistent_receiver::{PersistentReceiver, PersistentUpdate};
 use qrbeam_core::session::{BlockState, SendSession};
 use qrbeam_core::timeline::ChannelRequest;
@@ -43,5 +44,29 @@ fn replaying_saved_frames_restores_a_partial_segment() {
     assert!(matches!(
         restored.snapshot().blocks.as_slice(),
         [BlockState::Partial { .. }]
+    ));
+}
+
+#[test]
+fn persisted_segments_require_a_final_file_hash_check() {
+    let source = (0_u8..=255).cycle().take(1_536).collect::<Vec<_>>();
+    let mut sender = SendSession::new("verify.bin", "", &source, [0x72; 16], 72).unwrap();
+    let mut receiver = PersistentReceiver::from_manifest(sender.manifest().clone()).unwrap();
+    let mut stored = Vec::new();
+
+    loop {
+        let frame = sender.next_frames(&[CHANNEL]).unwrap().remove(0);
+        if let PersistentUpdate::SegmentReady { index, bytes } = receiver.ingest(&frame).unwrap() {
+            stored.push(bytes);
+            receiver.acknowledge_segment(index).unwrap();
+            break;
+        }
+    }
+
+    receiver.verify_persisted_segments(&stored).unwrap();
+    stored[0][0] ^= 1;
+    assert!(matches!(
+        receiver.verify_persisted_segments(&stored),
+        Err(ProtocolError::SegmentCrcMismatch { .. })
     ));
 }

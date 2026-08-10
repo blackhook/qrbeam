@@ -21,3 +21,10 @@ test("独立发送页不依赖开发服务器", async ({ page }) => {
   });
   await expect(page.locator("#status")).toContainText("发送文件信息", { timeout: 8_000 });
 });
+
+test("接收页加载 WASM 与本地恢复存储", async ({ page }) => {
+  await page.goto("receive/");
+  await expect(page.locator("h1")).toHaveText("接收文件");
+  await expect(page.locator("#status")).toHaveText("等待文件信息二维码");
+  await expect(page.locator("#save")).toBeDisabled();
+});

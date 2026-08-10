@@ -190,6 +190,13 @@ impl WebReceiver {
             .map_err(js_error)
     }
 
+    pub fn verify_persisted_segments(&self, segments: JsValue) -> Result<(), JsValue> {
+        let segments: Vec<Vec<u8>> = serde_wasm_bindgen::from_value(segments).map_err(js_error)?;
+        self.inner
+            .verify_persisted_segments(&segments)
+            .map_err(js_error)
+    }
+
     pub fn snapshot_json(&self) -> String {
         format!("{:?}", self.inner.snapshot())
     }
