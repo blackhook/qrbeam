@@ -1,6 +1,6 @@
 name: Deploy QRBeam Pages
 
-on:
+"on":
   push:
     branches: [main]
     paths: ["apps/qrbeam-web/**", ".github/workflows/web-pages.yml"]
