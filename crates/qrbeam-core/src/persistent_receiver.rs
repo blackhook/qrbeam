@@ -113,7 +113,9 @@ impl PersistentReceiver {
         self.ensure_decoder(index)?;
         let active = self.active[index]
             .as_mut()
-            .expect("decoder was initialized");
+            .ok_or(ProtocolError::InvalidManifest(
+                "decoder was not initialized",
+            ))?;
         active.last_used = self.clock;
         let mut accepted = false;
         let mut ready = None;
@@ -167,6 +169,11 @@ impl PersistentReceiver {
     }
 
     /// Marks one previously emitted segment as durably stored.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ProtocolError`] when the index has no segment waiting for
+    /// storage acknowledgement.
     pub fn acknowledge_segment(&mut self, index: u32) -> Result<(), ProtocolError> {
         let index =
             usize::try_from(index).map_err(|_| ProtocolError::SegmentNotAvailable(index))?;
@@ -183,6 +190,11 @@ impl PersistentReceiver {
     }
 
     /// Restores a durably stored segment without retaining its bytes in RAM.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ProtocolError`] when the segment index is outside the
+    /// manifest.
     pub fn restore_completed_segment(&mut self, index: u32) -> Result<(), ProtocolError> {
         let index =
             usize::try_from(index).map_err(|_| ProtocolError::SegmentNotAvailable(index))?;
@@ -199,6 +211,11 @@ impl PersistentReceiver {
     }
 
     /// Replays persisted valid frames to rebuild one partial decoder.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ProtocolError`] when a saved frame is malformed or does not
+    /// belong to this session.
     pub fn restore_partial_frames(
         &mut self,
         index: u32,
@@ -225,16 +242,15 @@ impl PersistentReceiver {
             return Ok(());
         }
         let live = self.active.iter().flatten().count();
-        if live >= MAX_ACTIVE_DECODERS {
-            if let Some((oldest, _)) = self
+        if live >= MAX_ACTIVE_DECODERS
+            && let Some((oldest, _)) = self
                 .active
                 .iter()
                 .enumerate()
                 .filter_map(|(i, value)| value.as_ref().map(|active| (i, active.last_used)))
                 .min_by_key(|(_, used)| *used)
-            {
-                self.active[oldest] = None;
-            }
+        {
+            self.active[oldest] = None;
         }
         let length = segment_length(&self.manifest, index)?;
         let checksum = self.manifest.segment_crc32c[index];

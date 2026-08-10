@@ -1,0 +1,15 @@
+{
+  "name": "qrbeam-web",
+  "type": "module",
+  "version": "0.1.0",
+  "files": [
+    "qrbeam_web_bg.wasm",
+    "qrbeam_web.js",
+    "qrbeam_web.d.ts"
+  ],
+  "main": "qrbeam_web.js",
+  "types": "qrbeam_web.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
