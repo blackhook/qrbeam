@@ -1,8 +1,8 @@
-use qrbeam_core::manifest::Manifest;
+use qrbeam_core::manifest::{Manifest, ManifestAssembler};
 use qrbeam_core::persistent_receiver::{PersistentReceiver, PersistentUpdate};
 use qrbeam_core::session::SendSession;
 use qrbeam_core::timeline::ChannelRequest;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
 const TURBO_CHANNEL: ChannelRequest = ChannelRequest {
@@ -84,6 +84,45 @@ pub struct WebReceiver {
     inner: PersistentReceiver,
 }
 
+#[derive(Serialize)]
+struct ReceiverEvent {
+    kind: String,
+    index: Option<u32>,
+    bytes: Option<Vec<u8>>,
+}
+
+#[wasm_bindgen]
+pub struct WebManifestAssembler {
+    inner: ManifestAssembler,
+}
+
+impl Default for WebManifestAssembler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[wasm_bindgen]
+impl WebManifestAssembler {
+    #[wasm_bindgen(constructor)]
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            inner: ManifestAssembler::new(),
+        }
+    }
+
+    pub fn push(&mut self, frame: &[u8]) -> Result<JsValue, JsValue> {
+        let frame = qrbeam_core::frame::Frame::decode(frame).map_err(js_error)?;
+        let manifest = self.inner.push(&frame).map_err(js_error)?;
+        let encoded = manifest
+            .map(|manifest| manifest.encode())
+            .transpose()
+            .map_err(js_error)?;
+        serde_wasm_bindgen::to_value(&encoded).map_err(js_error)
+    }
+}
+
 #[wasm_bindgen]
 impl WebReceiver {
     #[wasm_bindgen(constructor)]
@@ -96,14 +135,28 @@ impl WebReceiver {
 
     pub fn ingest(&mut self, frame: &[u8]) -> Result<JsValue, JsValue> {
         let event = match self.inner.ingest(frame).map_err(js_error)? {
-            PersistentUpdate::Accepted => "accepted".to_owned(),
-            PersistentUpdate::IgnoredDuplicate => "duplicate".to_owned(),
-            PersistentUpdate::ManifestRefreshed => "manifest-refreshed".to_owned(),
-            PersistentUpdate::SegmentReady { index, bytes } => {
-                format!("segment-ready:{index}:{}", bytes.len())
-            }
+            PersistentUpdate::Accepted => ReceiverEvent {
+                kind: "accepted".to_owned(),
+                index: None,
+                bytes: None,
+            },
+            PersistentUpdate::IgnoredDuplicate => ReceiverEvent {
+                kind: "duplicate".to_owned(),
+                index: None,
+                bytes: None,
+            },
+            PersistentUpdate::ManifestRefreshed => ReceiverEvent {
+                kind: "manifest-refreshed".to_owned(),
+                index: None,
+                bytes: None,
+            },
+            PersistentUpdate::SegmentReady { index, bytes } => ReceiverEvent {
+                kind: "segment-ready".to_owned(),
+                index: Some(index),
+                bytes: Some(bytes),
+            },
         };
-        Ok(JsValue::from_str(&event))
+        serde_wasm_bindgen::to_value(&event).map_err(js_error)
     }
 
     pub fn acknowledge_segment(&mut self, index: u32) -> Result<(), JsValue> {

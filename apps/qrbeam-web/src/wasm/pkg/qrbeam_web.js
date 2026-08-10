@@ -167,6 +167,13 @@ function isLikeNone(x) {
     return x === undefined || x === null;
 }
 
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+
 function takeFromExternrefTable0(idx) {
     const value = wasm.__wbindgen_export_4.get(idx);
     wasm.__externref_table_dealloc(idx);
@@ -178,11 +185,42 @@ function getArrayU8FromWasm0(ptr, len) {
     return getUint8ArrayMemory0().subarray(ptr / 1, ptr / 1 + len);
 }
 
-function passArray8ToWasm0(arg, malloc) {
-    const ptr = malloc(arg.length * 1, 1) >>> 0;
-    getUint8ArrayMemory0().set(arg, ptr / 1);
-    WASM_VECTOR_LEN = arg.length;
-    return ptr;
+const WebManifestAssemblerFinalization = (typeof FinalizationRegistry === 'undefined')
+    ? { register: () => {}, unregister: () => {} }
+    : new FinalizationRegistry(ptr => wasm.__wbg_webmanifestassembler_free(ptr >>> 0, 1));
+
+export class WebManifestAssembler {
+
+    __destroy_into_raw() {
+        const ptr = this.__wbg_ptr;
+        this.__wbg_ptr = 0;
+        WebManifestAssemblerFinalization.unregister(this);
+        return ptr;
+    }
+
+    free() {
+        const ptr = this.__destroy_into_raw();
+        wasm.__wbg_webmanifestassembler_free(ptr, 0);
+    }
+    constructor() {
+        const ret = wasm.webmanifestassembler_new();
+        this.__wbg_ptr = ret >>> 0;
+        WebManifestAssemblerFinalization.register(this, this.__wbg_ptr, this);
+        return this;
+    }
+    /**
+     * @param {Uint8Array} frame
+     * @returns {any}
+     */
+    push(frame) {
+        const ptr0 = passArray8ToWasm0(frame, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ret = wasm.webmanifestassembler_push(this.__wbg_ptr, ptr0, len0);
+        if (ret[2]) {
+            throw takeFromExternrefTable0(ret[1]);
+        }
+        return takeFromExternrefTable0(ret[0]);
+    }
 }
 
 const WebReceiverFinalization = (typeof FinalizationRegistry === 'undefined')
@@ -413,6 +451,10 @@ function __wbg_get_imports() {
         const ret = arg0.length;
         return ret;
     };
+    imports.wbg.__wbg_new_405e22f390576ce2 = function() {
+        const ret = new Object();
+        return ret;
+    };
     imports.wbg.__wbg_new_78feb108b6472713 = function() {
         const ret = new Array();
         return ret;
@@ -431,6 +473,9 @@ function __wbg_get_imports() {
     }, arguments) };
     imports.wbg.__wbg_set_37837023f3d740e8 = function(arg0, arg1, arg2) {
         arg0[arg1 >>> 0] = arg2;
+    };
+    imports.wbg.__wbg_set_3f1d0b984ed272ed = function(arg0, arg1, arg2) {
+        arg0[arg1] = arg2;
     };
     imports.wbg.__wbg_set_65595bdd868b3009 = function(arg0, arg1, arg2) {
         arg0.set(arg1, arg2 >>> 0);

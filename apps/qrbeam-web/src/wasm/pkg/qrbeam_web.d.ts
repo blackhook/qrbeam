@@ -1,5 +1,10 @@
 /* tslint:disable */
 /* eslint-disable */
+export class WebManifestAssembler {
+  free(): void;
+  constructor();
+  push(frame: Uint8Array): any;
+}
 export class WebReceiver {
   free(): void;
   snapshot_json(): string;
@@ -18,8 +23,11 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
+  readonly __wbg_webmanifestassembler_free: (a: number, b: number) => void;
   readonly __wbg_webreceiver_free: (a: number, b: number) => void;
   readonly __wbg_websender_free: (a: number, b: number) => void;
+  readonly webmanifestassembler_new: () => number;
+  readonly webmanifestassembler_push: (a: number, b: number, c: number) => [number, number, number];
   readonly webreceiver_acknowledge_segment: (a: number, b: number) => [number, number];
   readonly webreceiver_ingest: (a: number, b: number, c: number) => [number, number, number];
   readonly webreceiver_new: (a: number, b: number) => [number, number, number];

@@ -1,8 +1,11 @@
 /* tslint:disable */
 /* eslint-disable */
 export const memory: WebAssembly.Memory;
+export const __wbg_webmanifestassembler_free: (a: number, b: number) => void;
 export const __wbg_webreceiver_free: (a: number, b: number) => void;
 export const __wbg_websender_free: (a: number, b: number) => void;
+export const webmanifestassembler_new: () => number;
+export const webmanifestassembler_push: (a: number, b: number, c: number) => [number, number, number];
 export const webreceiver_acknowledge_segment: (a: number, b: number) => [number, number];
 export const webreceiver_ingest: (a: number, b: number, c: number) => [number, number, number];
 export const webreceiver_new: (a: number, b: number) => [number, number, number];
