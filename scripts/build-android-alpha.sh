@@ -21,7 +21,7 @@ fi
   cd "$mobile_dir"
   flutter test
   flutter analyze
-  flutter build apk --release
+  flutter build apk --release --target-platform android-arm64,android-x64
 )
 
 built_apk=$(find "$mobile_dir/build/app/outputs/flutter-apk" -maxdepth 1 -type f -name '*release*.apk' -print -quit)

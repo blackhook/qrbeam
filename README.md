@@ -76,7 +76,7 @@ scripts/build-ios-alpha.sh
 scripts/build-android-alpha.sh
 ```
 
-脚本会生成 `dist/QRBeam-Alpha1-android.apk`，运行测试、静态检查和 100 MB 体积限制。当前 Android release 使用项目的 debug 签名，仅适合测试安装；发布前需要替换成正式签名配置。
+脚本会生成 `dist/QRBeam-Alpha1-android.apk`，运行测试、静态检查和 100 MB 体积限制。APK 面向现代 `arm64-v8a` Android 手机与 x86_64 模拟器；当前 RaptorQ 上游在 32 位 ARM 的 NEON 实现无法通过稳定 Rust 编译，因此暂不包含 `armeabi-v7a`。当前 Android release 使用项目的 debug 签名，仅适合测试安装；发布前需要替换成正式签名配置。
 
 ## 开发验证
 
