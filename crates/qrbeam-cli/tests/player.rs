@@ -57,7 +57,7 @@ fn seek_back_replays_historical_data_frames() {
     for _ in 0..3 {
         player.next_frame().unwrap();
     }
-    for _ in 0..140 {
+    for _ in 0..400 {
         player.next_frame().unwrap();
     }
     let live_edge = player.current_data_frame();
