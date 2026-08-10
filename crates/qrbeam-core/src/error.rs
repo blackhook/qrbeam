@@ -74,6 +74,8 @@ pub enum ProtocolError {
     FileIdMismatch,
     #[error("frame type cannot be ingested by a data session")]
     UnexpectedFrameType,
+    #[error("a validated manifest is required before data frames")]
+    ManifestRequired,
     #[error("frame plan is invalid: {0}")]
     InvalidFramePlan(&'static str),
     #[error("restored file length mismatch: expected {expected}, got {actual}")]

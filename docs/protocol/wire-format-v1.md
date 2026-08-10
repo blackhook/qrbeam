@@ -113,8 +113,8 @@ symbol(first_symbol_id)
 | `83` | 1 | `reserved` | `u8` | 必须为 `0` |
 | `84` | 4 | `last_segment_length` | `u32` | 最后区块实际长度 |
 | `88` | 16 | `encoding_seed` | `[u8; 16]` | 确定性发送种子 |
-| `104` | 2 | `filename_length` | `u16` | UTF-8 文件名字节数 |
-| `106` | 2 | `mime_length` | `u16` | UTF-8 MIME 字节数 |
+| `104` | 2 | `filename_length` | `u16` | UTF-8 文件名字节数，最大 `255 B` |
+| `106` | 2 | `mime_length` | `u16` | UTF-8 MIME 字节数，最大 `255 B` |
 | `108` | 4 | `segment_count` | `u32` | 区块 CRC32C 数量 |
 
 ### 4.2 可变部分
@@ -138,7 +138,7 @@ manifest_crc32c[4]
 | 相对偏移 | 长度 | 字段 | 说明 |
 |---:|---:|---|---|
 | `0` | 1 | `profile_id` | 档位 ID |
-| `1` | 1 | `symbols_per_frame` | 每帧原子符号数，范围 `1..=10` |
+| `1` | 1 | `symbols_per_frame` | 每帧原子符号数，范围 `1..=11` |
 | `2` | 1 | `ecc` | `0 = L`，`1 = M` |
 | `3` | 1 | `target_fps` | 范围 `1..=60` |
 | `4` | 1 | `min_module_pixels` | 最小物理模块像素数 |
@@ -152,7 +152,9 @@ v1 默认档位：
 | `0` | 1 | M | 8 | 6 | 40 |
 | `1` | 5 | L | 24 | 6 | 40 |
 | `2` | 8 | L | 30 | 4 | 40 |
-| `3` | 10 | L | 60 | 4 | 40 |
+| `3` | 11 | L | 60 | 4 | 40 |
+
+高速档每个数据帧的固定长度为 `56 + 11 × 256 = 2,872 B`，小于二维码帧上限 `2,953 B`。
 
 ## 5. 清单分片
 
@@ -244,8 +246,8 @@ ObjectTransmissionInformation::new(
 输入字段与 `tests/manifest_wire.rs` 的 `sample_manifest()` 相同。编码结果：
 
 - 总长度：`191 B`
-- CRC32C：`0xc9a82c6f`
-- 完整清单 BLAKE3：`3f7df0e36011be693ecb7b35021a465049a9a4ec52e04b352fa6091c7becd25c`
+- CRC32C：`0xae26d16e`
+- 完整清单 BLAKE3：`221b392a651153a455a08eca071ff61258235157b2bdc8dfec13d46dd4a34c94`
 
 ```text
 51524d4601000000
@@ -262,9 +264,9 @@ ObjectTransmissionInformation::new(
 0001010806280000
 0105001806280000
 0208001e04280000
-030a003c04280000
+030b003c04280000
 78563412efcdab90
-6f2ca8c9
+6ed126ae
 ```
 
 黄金测试直接比较这些固定字节，不以本库 encode/decode 往返代替独立期望值。

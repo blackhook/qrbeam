@@ -1,0 +1,53 @@
+name: iOS Alpha
+
+on:
+  push:
+    branches: [main, feat/ios-receiver]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-alpha-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+          targets: aarch64-apple-ios,aarch64-apple-ios-sim,x86_64-apple-ios
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.8
+          cache: true
+
+      - name: Resolve Flutter packages
+        working-directory: apps/qrbeam_mobile
+        run: flutter pub get
+
+      - name: Test build decisions
+        run: scripts/tests/build-ios-alpha-test.sh
+
+      - name: Build unsigned iOS Alpha
+        run: scripts/build-ios-alpha.sh
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v6
+        with:
+          name: QRBeam-Alpha1-unsigned
+          path: dist/QRBeam-Alpha1-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14

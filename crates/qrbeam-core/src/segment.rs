@@ -230,6 +230,11 @@ impl SegmentDecoder {
     pub fn completed(&self) -> Option<&[u8]> {
         self.completed.as_deref()
     }
+
+    #[must_use]
+    pub fn unique_symbol_count(&self) -> u32 {
+        u32::try_from(self.seen_esi.len()).unwrap_or(u32::MAX)
+    }
 }
 
 fn validate_segment_length(actual: usize) -> Result<(), ProtocolError> {
