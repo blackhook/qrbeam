@@ -68,6 +68,16 @@ scripts/build-ios-alpha.sh
 
 相机真实扫码、不同手机屏幕与电脑终端组合的稳定带宽目前没验证；这是 Alpha 1 最重要的实测项。
 
+## Android 构建
+
+安装 Android SDK 并设置 `ANDROID_HOME` 或 `ANDROID_SDK_ROOT` 后运行：
+
+```bash
+scripts/build-android-alpha.sh
+```
+
+脚本会生成 `dist/QRBeam-Alpha1-android.apk`，运行测试、静态检查和 100 MB 体积限制。当前 Android release 使用项目的 debug 签名，仅适合测试安装；发布前需要替换成正式签名配置。
+
 ## 开发验证
 
 ```bash
