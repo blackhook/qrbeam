@@ -27,6 +27,28 @@ test("可扫窄窗口自动选择低档位并显示模块物理像素", async ({
   await expect(page.locator("#profile-status")).toContainText("符号/帧");
 });
 
+test("高 DPR 屏幕保持二维码完整同屏", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(window, "devicePixelRatio", { configurable: true, value: 2 });
+  });
+  await page.setViewportSize({ width: 1800, height: 1000 });
+  await page.goto("send/");
+  await page.locator("#file").setInputFiles({
+    name: "retina.bin",
+    mimeType: "application/octet-stream",
+    buffer: Buffer.alloc(1024, 7),
+  });
+  await expect(page.locator("#qr-player")).toHaveClass(/active/, { timeout: 8_000 });
+  const dimensions = await page.locator("#qr").evaluate(canvas => ({
+    bitmapWidth: (canvas as HTMLCanvasElement).width,
+    cssWidth: canvas.getBoundingClientRect().width,
+    dpr: window.devicePixelRatio,
+    viewportHeight: window.innerHeight,
+  }));
+  expect(dimensions.cssWidth).toBe(dimensions.bitmapWidth / dimensions.dpr);
+  expect(dimensions.cssWidth).toBeLessThanOrEqual(dimensions.viewportHeight - 146);
+});
+
 test("过窄窗口拒绝开始并提示全屏", async ({ page }) => {
   await page.setViewportSize({ width: 480, height: 720 });
   await page.goto("send/");
