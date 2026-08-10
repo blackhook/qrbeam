@@ -1,4 +1,5 @@
 export const MIN_MODULE_PHYSICAL_PIXELS = 6;
+export const MAX_PHONE_SCAN_MODULES = 121;
 const QUIET_ZONE_MODULES = 4;
 
 export type PlaybackProfile = {
@@ -35,13 +36,14 @@ export function choosePlaybackProfile(input: AdaptiveInput): AdaptiveSelection |
   for (const profile of [...input.profiles].sort((left, right) => right.symbolsPerFrame - left.symbolsPerFrame)) {
     const modules = moduleCounts.get(profile.id);
     if (!modules) continue;
+    if (modules > MAX_PHONE_SCAN_MODULES) continue;
     const modulePhysicalPixels = physicalPixels / (modules + 2 * QUIET_ZONE_MODULES);
     bestAvailable = Math.max(bestAvailable, modulePhysicalPixels);
     if (modulePhysicalPixels >= MIN_MODULE_PHYSICAL_PIXELS) {
       return {
         kind: "selected",
         profileId: profile.id,
-        fps: Math.min(profile.targetFps, Math.max(1, Math.floor(input.refreshRate))),
+        fps: Math.min(profile.targetFps, Math.max(1, Math.floor(input.refreshRate / 2))),
         modules,
         modulePhysicalPixels,
       };

@@ -116,7 +116,7 @@ if (( signing_identities > 0 && provisioning_profiles > 0 )); then
     echo 'signed build completed without an IPA' >&2
     exit 1
   fi
-  artifact_path="$dist_dir/QRBeam-Alpha1-signed.ipa"
+  artifact_path="$dist_dir/QRBeam-Alpha3-signed.ipa"
   cp "$built_ipa" "$artifact_path"
 else
   signing_status=UNSIGNED
@@ -125,7 +125,7 @@ else
     flutter build ios --release --no-codesign
   )
   app_path=$(find_built_app)
-  artifact_path="$dist_dir/QRBeam-Alpha1-unsigned.ipa"
+  artifact_path="$dist_dir/QRBeam-Alpha3-unsigned.ipa"
   package_dir=$(mktemp -d)
   trap 'rm -rf -- "$package_dir"' EXIT
   mkdir -p "$package_dir/Payload"

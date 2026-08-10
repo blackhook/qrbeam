@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_zxing/flutter_zxing.dart';
 import 'package:qrbeam_mobile/features/receive/frame_ingest_gate.dart';
+import 'package:qrbeam_mobile/features/receive/receiver_scanner.dart';
 import 'package:qrbeam_mobile/features/receive/receive_screen.dart';
 import 'package:qrbeam_mobile/features/receive/receive_view_model.dart';
 import 'package:qrbeam_mobile/src/rust/api/receiver.dart';
@@ -103,19 +104,8 @@ class _ReceivePageState extends State<ReceivePage> {
         stableBytesPerSecond: _throughput.stableBytesPerSecond(now),
         lastError: _lastError,
       ),
-      scanner: ReaderWidget(
+      scanner: buildReceiverScanner(
         onScan: _onScan,
-        codeFormat: Format.qrCode,
-        maxNumberOfSymbols: 1,
-        tryHarder: false,
-        tryRotate: true,
-        tryDownscale: false,
-        showFlashlight: false,
-        showToggleCamera: false,
-        showGallery: false,
-        scanDelay: Duration.zero,
-        scanDelaySuccess: Duration.zero,
-        cropPercent: 0.82,
       ),
       onShare: _share,
     );

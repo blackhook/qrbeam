@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 import init, { WebSender } from "../wasm/pkg/qrbeam_web";
 import { choosePlaybackProfile, type AdaptiveSelection, type PlaybackProfile } from "./adaptive_profile";
+import { manifestFrameIndex, manifestRoundTicks } from "./playback_schedule";
 import "../shared/style.css";
 
 const MAX_FILE_BYTES = 100_000_000;
@@ -29,7 +30,8 @@ let resizeTimer = 0;
 let paused = false;
 let sender: WebSender | undefined;
 let manifests: Uint8Array[] = [];
-let manifestCursor = 0;
+let manifestTick = 0;
+let manifestRoundRemaining = 0;
 let warmup = 0;
 let sinceManifest = 0;
 let selection: AdaptiveSelection | undefined;
@@ -105,11 +107,19 @@ async function configurePlayback() {
 
 async function tick() {
   if (paused || !sender || !selection) return;
-  if (warmup < selection.fps * 3 || sinceManifest >= selection.fps * 2) {
-    const frame = manifests[manifestCursor++ % manifests.length];
-    if (warmup < selection.fps * 3) warmup += 1;
-    else sinceManifest = 0;
-    status.textContent = `发送文件信息 · ${manifestCursor}/${manifests.length}`;
+  const warmingUp = warmup < selection.fps * 3;
+  if (!warmingUp && manifestRoundRemaining === 0 && sinceManifest >= selection.fps * 2) {
+    manifestTick = 0;
+    manifestRoundRemaining = manifestRoundTicks(selection.fps, manifests.length);
+    sinceManifest = 0;
+  }
+  if (warmingUp || manifestRoundRemaining > 0) {
+    const manifestIndex = manifestFrameIndex(manifestTick, selection.fps, manifests.length);
+    const frame = manifests[manifestIndex];
+    manifestTick += 1;
+    if (warmingUp) warmup += 1;
+    else manifestRoundRemaining -= 1;
+    status.textContent = `发送文件信息 · ${manifestIndex + 1}/${manifests.length}（每帧停留 250 ms）`;
     await draw(frame, "M");
     return;
   }
@@ -149,7 +159,7 @@ input.onchange = async () => {
     file_id: crypto.getRandomValues(new Uint32Array(1))[0],
   });
   manifests = (sender.manifest_frames() as number[][]).map(frame => new Uint8Array(frame));
-  manifestCursor = warmup = sinceManifest = 0;
+  manifestTick = manifestRoundRemaining = warmup = sinceManifest = 0;
   paused = false;
   pause.textContent = "暂停";
   await begin();
@@ -187,7 +197,13 @@ window.addEventListener("resize", scheduleReconfigure);
 document.addEventListener("fullscreenchange", scheduleReconfigure);
 window.addEventListener("keydown", event => {
   if (event.key === " ") { event.preventDefault(); pause.click(); }
-  if (event.key === "Home") sinceManifest = selection ? selection.fps * 2 : 0;
+  if (event.key === "Home" && selection) {
+    manifestTick = 0;
+    manifestRoundRemaining = manifestRoundTicks(selection.fps, manifests.length);
+    sinceManifest = 0;
+    paused = false;
+    pause.textContent = "暂停";
+  }
   if (event.key.toLowerCase() === "j") sender?.seek_back(100);
   if (event.key.toLowerCase() === "l") sender?.seek_forward(100);
   if (event.key.toLowerCase() === "r" && sender) {
