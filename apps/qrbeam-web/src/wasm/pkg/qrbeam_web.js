@@ -359,10 +359,24 @@ export class WebSender {
         return takeFromExternrefTable0(ret[0]);
     }
     /**
+     * @param {number} profile_id
      * @returns {Uint8Array}
      */
-    next_turbo_frame() {
-        const ret = wasm.websender_next_turbo_frame(this.__wbg_ptr);
+    next_profile_frame(profile_id) {
+        const ret = wasm.websender_next_profile_frame(this.__wbg_ptr, profile_id);
+        if (ret[3]) {
+            throw takeFromExternrefTable0(ret[2]);
+        }
+        var v1 = getArrayU8FromWasm0(ret[0], ret[1]).slice();
+        wasm.__wbindgen_free(ret[0], ret[1] * 1, 1);
+        return v1;
+    }
+    /**
+     * @param {number} profile_id
+     * @returns {Uint8Array}
+     */
+    preview_profile_frame(profile_id) {
+        const ret = wasm.websender_preview_profile_frame(this.__wbg_ptr, profile_id);
         if (ret[3]) {
             throw takeFromExternrefTable0(ret[2]);
         }

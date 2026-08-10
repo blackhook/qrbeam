@@ -5,12 +5,6 @@ use qrbeam_core::timeline::ChannelRequest;
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
-const TURBO_CHANNEL: ChannelRequest = ChannelRequest {
-    channel_id: 0,
-    profile_id: 3,
-    symbols_per_frame: 11,
-};
-
 #[derive(Deserialize)]
 struct SenderInput {
     filename: String,
@@ -67,15 +61,12 @@ impl WebSender {
         serde_wasm_bindgen::to_value(&frames.map_err(js_error)?).map_err(js_error)
     }
 
-    pub fn next_turbo_frame(&mut self) -> Result<Vec<u8>, JsValue> {
-        self.inner
-            .next_frames(&[TURBO_CHANNEL])
-            .map_err(js_error)
-            .and_then(|mut frames| {
-                frames
-                    .pop()
-                    .ok_or_else(|| JsValue::from_str("missing frame"))
-            })
+    pub fn next_profile_frame(&mut self, profile_id: u8) -> Result<Vec<u8>, JsValue> {
+        next_frame_for_profile(&mut self.inner, profile_id).map_err(js_error)
+    }
+
+    pub fn preview_profile_frame(&self, profile_id: u8) -> Result<Vec<u8>, JsValue> {
+        preview_frame_for_profile(&self.inner, profile_id).map_err(js_error)
     }
 
     #[must_use]
@@ -98,6 +89,39 @@ impl WebSender {
     pub fn stop_repair(&mut self) {
         self.inner.timeline_mut().stop_repair();
     }
+}
+
+fn preview_frame_for_profile(
+    sender: &SendSession,
+    profile_id: u8,
+) -> Result<Vec<u8>, qrbeam_core::error::ProtocolError> {
+    let mut preview = sender.clone();
+    next_frame_for_profile(&mut preview, profile_id)
+}
+
+fn next_frame_for_profile(
+    sender: &mut SendSession,
+    profile_id: u8,
+) -> Result<Vec<u8>, qrbeam_core::error::ProtocolError> {
+    let profile = sender
+        .manifest()
+        .profiles
+        .iter()
+        .find(|profile| profile.id == profile_id)
+        .ok_or(qrbeam_core::error::ProtocolError::InvalidTimeline(
+            "unknown manifest profile",
+        ))?;
+    let channel = ChannelRequest {
+        channel_id: 0,
+        profile_id,
+        symbols_per_frame: u16::from(profile.symbols_per_frame),
+    };
+    sender
+        .next_frames(&[channel])?
+        .pop()
+        .ok_or(qrbeam_core::error::ProtocolError::InvalidTimeline(
+            "missing generated frame",
+        ))
 }
 
 #[wasm_bindgen]
@@ -204,4 +228,31 @@ impl WebReceiver {
 
 fn js_error(error: impl std::fmt::Display) -> JsValue {
     JsValue::from_str(&error.to_string())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use qrbeam_core::frame::Frame;
+
+    #[test]
+    fn preview_profile_frame_uses_requested_profile_without_advancing_sender() {
+        let mut sender = SendSession::new(
+            "sample.bin",
+            "application/octet-stream",
+            &[7; 1024],
+            [3; 16],
+            19,
+        )
+        .unwrap();
+
+        let preview = preview_frame_for_profile(&sender, 0).unwrap();
+        let first = next_frame_for_profile(&mut sender, 0).unwrap();
+
+        let preview = Frame::decode(&preview).unwrap();
+        let first = Frame::decode(&first).unwrap();
+        assert_eq!(preview.header.profile_id, 0);
+        assert_eq!(preview.header.symbol_count, 1);
+        assert_eq!(preview, first);
+    }
 }
