@@ -15,7 +15,9 @@ export class WebReceiver {
 }
 export class WebSender {
   free(): void;
+  stop_repair(): void;
   seek_forward(frames: number): bigint;
+  start_repair(segment_index: number): void;
   manifest_frames(): any;
   next_turbo_frame(): Uint8Array;
   constructor(input: any);
@@ -41,6 +43,8 @@ export interface InitOutput {
   readonly websender_next_turbo_frame: (a: number) => [number, number, number, number];
   readonly websender_seek_back: (a: number, b: number) => bigint;
   readonly websender_seek_forward: (a: number, b: number) => bigint;
+  readonly websender_start_repair: (a: number, b: number) => [number, number];
+  readonly websender_stop_repair: (a: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_exn_store: (a: number) => void;

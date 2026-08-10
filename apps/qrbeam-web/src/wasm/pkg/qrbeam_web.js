@@ -319,6 +319,9 @@ export class WebSender {
         const ptr = this.__destroy_into_raw();
         wasm.__wbg_websender_free(ptr, 0);
     }
+    stop_repair() {
+        wasm.websender_stop_repair(this.__wbg_ptr);
+    }
     /**
      * @param {number} frames
      * @returns {bigint}
@@ -326,6 +329,15 @@ export class WebSender {
     seek_forward(frames) {
         const ret = wasm.websender_seek_forward(this.__wbg_ptr, frames);
         return BigInt.asUintN(64, ret);
+    }
+    /**
+     * @param {number} segment_index
+     */
+    start_repair(segment_index) {
+        const ret = wasm.websender_start_repair(this.__wbg_ptr, segment_index);
+        if (ret[1]) {
+            throw takeFromExternrefTable0(ret[0]);
+        }
     }
     /**
      * @returns {any}

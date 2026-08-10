@@ -87,6 +87,17 @@ impl WebSender {
     pub fn seek_forward(&mut self, frames: u32) -> u64 {
         self.inner.timeline_mut().seek_forward(frames as usize)
     }
+
+    pub fn start_repair(&mut self, segment_index: u32) -> Result<(), JsValue> {
+        self.inner
+            .timeline_mut()
+            .start_repair(segment_index)
+            .map_err(js_error)
+    }
+
+    pub fn stop_repair(&mut self) {
+        self.inner.timeline_mut().stop_repair();
+    }
 }
 
 #[wasm_bindgen]
