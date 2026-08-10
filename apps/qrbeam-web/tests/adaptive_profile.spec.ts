@@ -36,3 +36,19 @@ test("没有任何档位满足模块阈值时拒绝开始发送", async ({ page 
 
   expect(result).toMatchObject({ kind: "unavailable" });
 });
+
+test("动态二维码至少保持两个显示刷新周期", async ({ page }) => {
+  await page.goto("send/");
+  const result = await page.evaluate(async () => {
+    const adaptive = await import("../src/send/adaptive_profile.ts");
+    return adaptive.choosePlaybackProfile({
+      canvasCssPixels: 900,
+      devicePixelRatio: 2,
+      refreshRate: 60,
+      profiles: [{ id: 3, symbolsPerFrame: 11, targetFps: 60 }],
+      moduleCounts: [[3, 177]],
+    });
+  });
+
+  expect(result).toMatchObject({ kind: "selected", profileId: 3, fps: 30 });
+});

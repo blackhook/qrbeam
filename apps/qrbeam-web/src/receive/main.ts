@@ -1,6 +1,7 @@
-import { BrowserMultiFormatReader } from "@zxing/browser";
 import init, { WebManifestAssembler, WebReceiver } from "../wasm/pkg/qrbeam_web";
 import { blockClass } from "./block_state";
+import { payloadFromResult } from "./decoded_payload";
+import { createQrReader, receiverVideoConstraints } from "./web_scanner";
 import "../shared/style.css";
 
 type ReceiverEvent = { kind: string; index?: number; bytes?: number[] };
@@ -171,10 +172,11 @@ if (savedManifest) {
 }
 
 document.querySelector<HTMLButtonElement>("#camera")!.onclick = async () => {
-  const reader = new BrowserMultiFormatReader();
-  await reader.decodeFromVideoDevice(undefined, video, result => {
+  const reader = createQrReader();
+  await reader.decodeFromConstraints(receiverVideoConstraints, video, result => {
     if (!result) return;
-    const raw = (result as unknown as { getRawBytes(): Uint8Array }).getRawBytes();
+    const raw = payloadFromResult(result);
+    if (!raw) return;
     void ingest(raw).catch(error => { status.textContent = `接收错误：${String(error)}`; });
   });
   status.textContent = "相机已开启，正在识别 QRBeam 帧";

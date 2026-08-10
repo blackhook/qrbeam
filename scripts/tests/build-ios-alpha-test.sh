@@ -5,6 +5,8 @@ script_dir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 repo_root=$(CDPATH= cd -- "$script_dir/../.." && pwd)
 build_script="$repo_root/scripts/build-ios-alpha.sh"
 
+grep -q '^version: 1.0.1+2$' "$repo_root/apps/qrbeam_mobile/pubspec.yaml"
+
 if [[ ! -x "$build_script" ]]; then
   echo "missing executable build script: $build_script" >&2
   exit 1
@@ -70,8 +72,8 @@ unsigned_output=$(run_build "$unsigned_dist" \
   QRBEAM_SIGNING_IDENTITIES=0 \
   QRBEAM_PROVISIONING_PROFILES=0)
 grep -q '^SIGNING_STATUS=UNSIGNED$' <<<"$unsigned_output"
-test -f "$unsigned_dist/QRBeam-Alpha1-unsigned.ipa"
-unzip -tq "$unsigned_dist/QRBeam-Alpha1-unsigned.ipa" >/dev/null
+test -f "$unsigned_dist/QRBeam-Alpha3-unsigned.ipa"
+unzip -tq "$unsigned_dist/QRBeam-Alpha3-unsigned.ipa" >/dev/null
 grep -q '^flutter build ios --release --no-codesign$' "$test_root/calls.log"
 
 : >"$test_root/calls.log"
@@ -80,7 +82,7 @@ signed_output=$(run_build "$signed_dist" \
   QRBEAM_SIGNING_IDENTITIES=1 \
   QRBEAM_PROVISIONING_PROFILES=1)
 grep -q '^SIGNING_STATUS=SIGNED$' <<<"$signed_output"
-test -f "$signed_dist/QRBeam-Alpha1-signed.ipa"
+test -f "$signed_dist/QRBeam-Alpha3-signed.ipa"
 grep -q '^flutter build ipa --release$' "$test_root/calls.log"
 
 set +e

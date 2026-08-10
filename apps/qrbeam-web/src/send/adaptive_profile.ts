@@ -41,7 +41,7 @@ export function choosePlaybackProfile(input: AdaptiveInput): AdaptiveSelection |
       return {
         kind: "selected",
         profileId: profile.id,
-        fps: Math.min(profile.targetFps, Math.max(1, Math.floor(input.refreshRate))),
+        fps: Math.min(profile.targetFps, Math.max(1, Math.floor(input.refreshRate / 2))),
         modules,
         modulePhysicalPixels,
       };

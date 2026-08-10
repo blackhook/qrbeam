@@ -47,7 +47,7 @@ jobs:
       - name: Upload IPA
         uses: actions/upload-artifact@v6
         with:
-          name: QRBeam-Alpha1-unsigned
-          path: dist/QRBeam-Alpha1-unsigned.ipa
+          name: QRBeam-Alpha3-unsigned
+          path: dist/QRBeam-Alpha3-unsigned.ipa
           if-no-files-found: error
           retention-days: 14
